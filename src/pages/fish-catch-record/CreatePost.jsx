@@ -402,41 +402,6 @@ const FishCatchForm = () => {
           onSubmit={handleSubmit}
           className="w-full max-w-lg mx-auto bg-white rounded-lg shadow-md p-6"
         >
-          <div className="flex items-center gap-5 mb-10">
-            <div>
-              <label
-                htmlFor="fishSelect"
-                className="block text-sm font-bold text-gray-700 mb-2"
-              >
-                어종 선택
-              </label>
-              <select
-                id="fishSelect"
-                className="border text-[#128100] p-1 border-[#128100] rounded-full shadow-sm"
-              >
-                <option value="">종류</option>
-                <option value="fish1">Fish 1</option>
-                <option value="fish2">Fish 2</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="fishLength"
-                className="block text-sm font-bold text-gray-700 mb-2"
-              >
-                어종 길이 (직접입력)
-              </label>
-              <div className="flex items-center gap-1">
-                <Input
-                  className="shadow-none border-[#128100] w-20"
-                  placeholder="예) 49.8"
-                />
-                <span className="text-[#128100]">cm</span>
-              </div>
-            </div>
-          </div>
-
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-2">
               사진첨부
