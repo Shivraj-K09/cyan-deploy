@@ -37,6 +37,8 @@ const FishCatchForm = () => {
   const customOverlayRef = useRef(null);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState({ place: null, fullAddress: null });
+  const [geocoder, setGeocoder] = useState(null);
+  const geocoderRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,9 +51,28 @@ const FishCatchForm = () => {
       window.kakao.maps.load(() => {
         console.log("Kakao Maps loaded successfully");
         setKakaoMapsLoaded(true);
+        initGeocoder();
       });
     };
     document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  const initGeocoder = useCallback(() => {
+    if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+      const geocoderInstance = new window.kakao.maps.services.Geocoder();
+      setGeocoder(geocoderInstance);
+      geocoderRef.current = geocoderInstance;
+      console.log("Geocoder initialized successfully");
+    } else {
+      console.log(
+        "Kakao Maps services not yet available, retrying in 1 second"
+      );
+      setTimeout(initGeocoder, 1000);
+    }
   }, []);
 
   useEffect(() => {
@@ -150,64 +171,75 @@ const FishCatchForm = () => {
       return;
     }
 
-    const { latitude, longitude } = location;
-
-    const latlng = new window.kakao.maps.LatLng(latitude, longitude);
-
-    // Use Geocoder to get address information
-    const geocoder = new window.kakao.maps.services.Geocoder();
-    geocoder.coord2Address(longitude, latitude, (result, status) => {
-      if (status === window.kakao.maps.services.Status.OK) {
-        const fullAddress = result[0].address.address_name;
-        const place =
-          result[0].address.region_3depth_name ||
-          result[0].address.region_2depth_name;
-
-        setAddress({ place, fullAddress });
-
-        console.log("Updated location data:", {
-          longitude,
-          latitude,
-          place,
-          address: fullAddress,
-        });
-      } else {
-        console.log("Failed to get address information");
-        setAddress({ place: null, fullAddress: null });
-      }
-    });
-
-    // Remove existing custom overlay if it exists
-    if (customOverlayRef.current) {
-      customOverlayRef.current.setMap(null);
+    if (!geocoderRef.current) {
+      console.error("Geocoder not available, retrying in 1 second");
+      setTimeout(updateMarkerPosition, 1000);
+      return;
     }
 
-    // Create new custom overlay with MapPin icon
-    const content = `
-    <div style="position: absolute; bottom: 0; left: -20px;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
-        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-        <circle cx="12" cy="10" r="3"/>
-      </svg>
-    </div>
-  `;
+    const { latitude, longitude } = location;
+    const latlng = new window.kakao.maps.LatLng(latitude, longitude);
 
-    const customOverlay = new window.kakao.maps.CustomOverlay({
-      position: latlng,
-      content: content,
-      map: map,
-      yAnchor: 1,
-    });
+    try {
+      geocoderRef.current.coord2Address(
+        longitude,
+        latitude,
+        (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const fullAddress = result[0].address.address_name;
+            const place =
+              result[0].address.region_3depth_name ||
+              result[0].address.region_2depth_name;
 
-    customOverlayRef.current = customOverlay;
+            setAddress({ place, fullAddress });
 
-    // Use panTo for smooth transition
-    map.panTo(latlng, {
-      duration: 500, // Duration of animation in milliseconds
-      easing: (t) => t * (2 - t), // Ease-out function for smoother deceleration
-    });
+            console.log("Updated location data:", {
+              longitude,
+              latitude,
+              place,
+              address: fullAddress,
+            });
+          } else {
+            console.log("Failed to get address information");
+            setAddress({ place: null, fullAddress: null });
+          }
+        }
+      );
 
-    console.log("New custom overlay created and map panned smoothly");
+      // Remove existing custom overlay if it exists
+      if (customOverlayRef.current) {
+        customOverlayRef.current.setMap(null);
+      }
+
+      // Create new custom overlay with MapPin icon
+      const content = `
+      <div style="position: absolute; bottom: 0; left: -20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
+          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+    `;
+
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: latlng,
+        content: content,
+        map: map,
+        yAnchor: 1,
+      });
+
+      customOverlayRef.current = customOverlay;
+
+      // Use panTo for smooth transition
+      map.panTo(latlng, {
+        duration: 500,
+        easing: (t) => t * (2 - t),
+      });
+
+      console.log("New custom overlay created and map panned smoothly");
+    } catch (error) {
+      console.error("Error in updateMarkerPosition:", error);
+    }
   }, [isMapInitialized, map, location]);
 
   const handleMapClick = useCallback((mouseEvent) => {
@@ -244,7 +276,7 @@ const FishCatchForm = () => {
   }, [kakaoMapsLoaded, handleMapClick]);
 
   useEffect(() => {
-    if (isMapInitialized && location) {
+    if (isMapInitialized && location && geocoderRef.current) {
       updateMarkerPosition();
     }
   }, [isMapInitialized, location, updateMarkerPosition]);
