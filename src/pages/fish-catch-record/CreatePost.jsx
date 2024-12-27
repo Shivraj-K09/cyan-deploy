@@ -37,7 +37,6 @@ const FishCatchForm = () => {
   const customOverlayRef = useRef(null);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState({ place: null, fullAddress: null });
-  const [geocoder, setGeocoder] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,23 +49,9 @@ const FishCatchForm = () => {
       window.kakao.maps.load(() => {
         console.log("Kakao Maps loaded successfully");
         setKakaoMapsLoaded(true);
-        initGeocoder();
       });
     };
     document.head.appendChild(script);
-  }, []);
-
-  const initGeocoder = useCallback(() => {
-    if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-      const geocoderInstance = new window.kakao.maps.services.Geocoder();
-      setGeocoder(geocoderInstance);
-      console.log("Geocoder initialized successfully");
-    } else {
-      console.log(
-        "Kakao Maps services not yet available, retrying in 1 second"
-      );
-      setTimeout(initGeocoder, 1000);
-    }
   }, []);
 
   useEffect(() => {
@@ -158,9 +143,9 @@ const FishCatchForm = () => {
   }, []);
 
   const updateMarkerPosition = useCallback(async () => {
-    if (!isMapInitialized || !map || !location || !geocoder) {
+    if (!isMapInitialized || !map || !location) {
       console.error(
-        "Map not initialized, location not set, or geocoder not available in updateMarkerPosition"
+        "Map not initialized or location not set in updateMarkerPosition"
       );
       return;
     }
@@ -169,64 +154,61 @@ const FishCatchForm = () => {
 
     const latlng = new window.kakao.maps.LatLng(latitude, longitude);
 
-    try {
-      // Use Geocoder to get address information
-      geocoder.coord2Address(longitude, latitude, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const fullAddress = result[0].address.address_name;
-          const place =
-            result[0].address.region_3depth_name ||
-            result[0].address.region_2depth_name;
+    // Use Geocoder to get address information
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoder.coord2Address(longitude, latitude, (result, status) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        const fullAddress = result[0].address.address_name;
+        const place =
+          result[0].address.region_3depth_name ||
+          result[0].address.region_2depth_name;
 
-          setAddress({ place, fullAddress });
+        setAddress({ place, fullAddress });
 
-          console.log("Updated location data:", {
-            longitude,
-            latitude,
-            place,
-            address: fullAddress,
-          });
-        } else {
-          console.log("Failed to get address information");
-          setAddress({ place: null, fullAddress: null });
-        }
-      });
-
-      // Remove existing custom overlay if it exists
-      if (customOverlayRef.current) {
-        customOverlayRef.current.setMap(null);
+        console.log("Updated location data:", {
+          longitude,
+          latitude,
+          place,
+          address: fullAddress,
+        });
+      } else {
+        console.log("Failed to get address information");
+        setAddress({ place: null, fullAddress: null });
       }
+    });
 
-      // Create new custom overlay with MapPin icon
-      const content = `
-      <div style="position: absolute; bottom: 0; left: -20px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
-          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-      </div>
-    `;
-
-      const customOverlay = new window.kakao.maps.CustomOverlay({
-        position: latlng,
-        content: content,
-        map: map,
-        yAnchor: 1,
-      });
-
-      customOverlayRef.current = customOverlay;
-
-      // Use panTo for smooth transition
-      map.panTo(latlng, {
-        duration: 500, // Duration of animation in milliseconds
-        easing: (t) => t * (2 - t), // Ease-out function for smoother deceleration
-      });
-
-      console.log("New custom overlay created and map panned smoothly");
-    } catch (error) {
-      console.error("Error in updateMarkerPosition:", error);
+    // Remove existing custom overlay if it exists
+    if (customOverlayRef.current) {
+      customOverlayRef.current.setMap(null);
     }
-  }, [isMapInitialized, map, location, geocoder]);
+
+    // Create new custom overlay with MapPin icon
+    const content = `
+    <div style="position: absolute; bottom: 0; left: -20px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
+        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    </div>
+  `;
+
+    const customOverlay = new window.kakao.maps.CustomOverlay({
+      position: latlng,
+      content: content,
+      map: map,
+      yAnchor: 1,
+    });
+
+    customOverlayRef.current = customOverlay;
+
+    // Use panTo for smooth transition
+    map.panTo(latlng, {
+      duration: 500, // Duration of animation in milliseconds
+      easing: (t) => t * (2 - t), // Ease-out function for smoother deceleration
+    });
+
+    console.log("New custom overlay created and map panned smoothly");
+  }, [isMapInitialized, map, location]);
 
   const handleMapClick = useCallback((mouseEvent) => {
     console.log("Map clicked. Getting location data...");
@@ -262,10 +244,10 @@ const FishCatchForm = () => {
   }, [kakaoMapsLoaded, handleMapClick]);
 
   useEffect(() => {
-    if (isMapInitialized && location && geocoder) {
+    if (isMapInitialized && location) {
       updateMarkerPosition();
     }
-  }, [isMapInitialized, location, updateMarkerPosition, geocoder]);
+  }, [isMapInitialized, location, updateMarkerPosition]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
