@@ -34,12 +34,39 @@ const FishCatchForm = () => {
   const [map, setMap] = useState(null);
   const [kakaoMapsLoaded, setKakaoMapsLoaded] = useState(false);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const [isFullyInitialized, setIsFullyInitialized] = useState(false); // Added state variable
   const customOverlayRef = useRef(null);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState({ place: null, fullAddress: null });
-  const [geocoder, setGeocoder] = useState(null);
   const geocoderRef = useRef(null);
+  const mapContainerRef = useRef(null);
   const navigate = useNavigate();
+
+  const SEOUL_COORDINATES = { latitude: 37.5665, longitude: 126.978 };
+
+  const initializeMap = useCallback(() => {
+    if (!mapContainerRef.current) return;
+
+    const options = {
+      center: new window.kakao.maps.LatLng(
+        SEOUL_COORDINATES.latitude,
+        SEOUL_COORDINATES.longitude
+      ),
+      level: 11,
+    };
+
+    const newMap = new window.kakao.maps.Map(mapContainerRef.current, options);
+    setMap(newMap);
+
+    geocoderRef.current = new window.kakao.maps.services.Geocoder();
+
+    setIsMapInitialized(true);
+    setIsFullyInitialized(true);
+    console.log("Map and geocoder initialized successfully");
+
+    // Set initial marker on Seoul
+    setLocation(SEOUL_COORDINATES);
+  }, []);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -51,7 +78,6 @@ const FishCatchForm = () => {
       window.kakao.maps.load(() => {
         console.log("Kakao Maps loaded successfully");
         setKakaoMapsLoaded(true);
-        initGeocoder();
       });
     };
     document.head.appendChild(script);
@@ -61,19 +87,114 @@ const FishCatchForm = () => {
     };
   }, []);
 
-  const initGeocoder = useCallback(() => {
-    if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-      const geocoderInstance = new window.kakao.maps.services.Geocoder();
-      setGeocoder(geocoderInstance);
-      geocoderRef.current = geocoderInstance;
-      console.log("Geocoder initialized successfully");
-    } else {
-      console.log(
-        "Kakao Maps services not yet available, retrying in 1 second"
+  const updateMarkerPosition = useCallback(
+    (newLocation) => {
+      if (!map || !newLocation || !geocoderRef.current) {
+        console.error(
+          "Map not initialized, location not set, or geocoder not available"
+        );
+        return;
+      }
+
+      const { latitude, longitude } = newLocation;
+      const latlng = new window.kakao.maps.LatLng(latitude, longitude);
+
+      geocoderRef.current.coord2Address(
+        longitude,
+        latitude,
+        (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const fullAddress = result[0].address.address_name;
+            const place =
+              result[0].address.region_3depth_name ||
+              result[0].address.region_2depth_name;
+
+            setAddress({ place, fullAddress });
+
+            console.log("Updated location data:", {
+              longitude,
+              latitude,
+              place,
+              address: fullAddress,
+            });
+          } else {
+            console.log("Failed to get address information");
+            setAddress({ place: null, fullAddress: null });
+          }
+        }
       );
-      setTimeout(initGeocoder, 1000);
+
+      // Remove existing custom overlay if it exists
+      if (customOverlayRef.current) {
+        customOverlayRef.current.setMap(null);
+      }
+
+      // Create new custom overlay with MapPin icon
+      const content = `
+    <div style="position: absolute; bottom: 0; left: -20px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
+        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    </div>
+  `;
+
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: latlng,
+        content: content,
+        map: map,
+        yAnchor: 1,
+      });
+
+      customOverlayRef.current = customOverlay;
+
+      // Use panTo for smooth transition
+      map.panTo(latlng);
+
+      console.log("New custom overlay created and map panned smoothly");
+    },
+    [map]
+  );
+
+  const handleMapClick = useCallback(
+    (mouseEvent) => {
+      if (!isFullyInitialized) {
+        console.log("Map not fully initialized yet. Please wait.");
+        return;
+      }
+
+      console.log("Map clicked. Getting location data...");
+      const clickedPosition = mouseEvent.latLng;
+      const newLocation = {
+        latitude: clickedPosition.getLat(),
+        longitude: clickedPosition.getLng(),
+      };
+      setLocation(newLocation);
+      updateMarkerPosition(newLocation);
+      console.log("Map clicked at:", newLocation);
+    },
+    [isFullyInitialized, updateMarkerPosition]
+  );
+
+  useEffect(() => {
+    if (kakaoMapsLoaded && !isMapInitialized) {
+      initializeMap();
     }
-  }, []);
+
+    if (isFullyInitialized && map) {
+      window.kakao.maps.event.addListener(map, "click", handleMapClick);
+      return () => {
+        window.kakao.maps.event.removeListener(map, "click", handleMapClick);
+      };
+    }
+  }, [
+    kakaoMapsLoaded,
+    isMapInitialized,
+    isFullyInitialized,
+    map,
+    handleMapClick,
+    initializeMap,
+  ]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -163,121 +284,9 @@ const FishCatchForm = () => {
     });
   }, []);
 
-  const updateMarkerPosition = useCallback(async () => {
-    if (!isMapInitialized || !map || !location) {
-      console.error(
-        "Map not initialized or location not set in updateMarkerPosition"
-      );
-      return;
-    }
-
-    if (!geocoderRef.current) {
-      console.error("Geocoder not available, retrying in 1 second");
-      setTimeout(updateMarkerPosition, 1000);
-      return;
-    }
-
-    const { latitude, longitude } = location;
-    const latlng = new window.kakao.maps.LatLng(latitude, longitude);
-
-    try {
-      geocoderRef.current.coord2Address(
-        longitude,
-        latitude,
-        (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const fullAddress = result[0].address.address_name;
-            const place =
-              result[0].address.region_3depth_name ||
-              result[0].address.region_2depth_name;
-
-            setAddress({ place, fullAddress });
-
-            console.log("Updated location data:", {
-              longitude,
-              latitude,
-              place,
-              address: fullAddress,
-            });
-          } else {
-            console.log("Failed to get address information");
-            setAddress({ place: null, fullAddress: null });
-          }
-        }
-      );
-
-      // Remove existing custom overlay if it exists
-      if (customOverlayRef.current) {
-        customOverlayRef.current.setMap(null);
-      }
-
-      // Create new custom overlay with MapPin icon
-      const content = `
-      <div style="position: absolute; bottom: 0; left: -20px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
-          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-      </div>
-    `;
-
-      const customOverlay = new window.kakao.maps.CustomOverlay({
-        position: latlng,
-        content: content,
-        map: map,
-        yAnchor: 1,
-      });
-
-      customOverlayRef.current = customOverlay;
-
-      // Use panTo for smooth transition
-      map.panTo(latlng, {
-        duration: 500,
-        easing: (t) => t * (2 - t),
-      });
-
-      console.log("New custom overlay created and map panned smoothly");
-    } catch (error) {
-      console.error("Error in updateMarkerPosition:", error);
-    }
-  }, [isMapInitialized, map, location]);
-
-  const handleMapClick = useCallback((mouseEvent) => {
-    console.log("Map clicked. Getting location data...");
-    const clickedPosition = mouseEvent.latLng;
-    const newLocation = {
-      latitude: clickedPosition.getLat(),
-      longitude: clickedPosition.getLng(),
-    };
-    setLocation(newLocation);
-    console.log("Map clicked at:", newLocation);
-  }, []);
-
   useEffect(() => {
-    if (kakaoMapsLoaded && !map && window.kakao && window.kakao.maps) {
-      console.log("Initializing map");
-      const container = document.getElementById("map");
-      if (container) {
-        const options = {
-          center: new window.kakao.maps.LatLng(36.5, 127.5),
-          level: 13,
-        };
-        const newMap = new window.kakao.maps.Map(container, options);
-        console.log("New map created:", newMap);
-        setMap(newMap);
-        setIsMapInitialized(true);
-
-        // Add event listener for map click
-        window.kakao.maps.event.addListener(newMap, "click", handleMapClick);
-      } else {
-        console.error("Map container not found");
-      }
-    }
-  }, [kakaoMapsLoaded, handleMapClick]);
-
-  useEffect(() => {
-    if (isMapInitialized && location && geocoderRef.current) {
-      updateMarkerPosition();
+    if (isMapInitialized && location) {
+      updateMarkerPosition(location);
     }
   }, [isMapInitialized, location, updateMarkerPosition]);
 
@@ -310,11 +319,6 @@ const FishCatchForm = () => {
             throw error;
           }
 
-          if (!data) {
-            console.error("No data returned from image upload");
-            throw new Error("Image upload failed");
-          }
-
           const { data: signedUrlData, error: signedUrlError } =
             await supabase.storage
               .from("fish-catch-images")
@@ -323,11 +327,6 @@ const FishCatchForm = () => {
           if (signedUrlError) {
             console.error("Error getting signed URL:", signedUrlError);
             throw signedUrlError;
-          }
-
-          if (!signedUrlData || !signedUrlData.signedUrl) {
-            console.error("No signed URL returned");
-            throw new Error("Failed to get signed URL for image");
           }
 
           console.log("Image uploaded successfully:", signedUrlData.signedUrl);
@@ -519,13 +518,24 @@ const FishCatchForm = () => {
             <label className="block text-sm font-bold text-gray-700 mb-2">
               지도표시
             </label>
-            <div id="map" className="w-full h-60 bg-gray-200 rounded-md"></div>
+            <div
+              ref={mapContainerRef}
+              className="w-full h-60 bg-gray-200 rounded-md relative"
+            >
+              {!isFullyInitialized && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
+                  <p>지도를 불러오는 중...</p>
+                </div>
+              )}
+            </div>
             {location && (
               <div className="mt-2 text-sm text-gray-600">
                 <p>
                   선택된 위치: {location.latitude.toFixed(6)},{" "}
                   {location.longitude.toFixed(6)}
                 </p>
+                {address.place && <p>장소: {address.place}</p>}
+                {address.fullAddress && <p>주소: {address.fullAddress}</p>}
               </div>
             )}
           </div>
