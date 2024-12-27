@@ -1,0 +1,13 @@
+{
+  "appId": "com.cyan.app",
+  "appName": "Cyan",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
