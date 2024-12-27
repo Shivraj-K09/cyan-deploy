@@ -19,6 +19,7 @@ const Profile = () => {
   const [userName, setUserName] = useState("");
   const [membershipLevel, setMembershipLevel] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [postCount, setPostCount] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -32,6 +33,7 @@ const Profile = () => {
         setAvatarUrl(parsedData.avatar_url);
         setUserName(parsedData.name);
         setMembershipLevel(parsedData.membership_level);
+        setPostCount(parsedData.post_count || 0);
         setLoading(false);
       }
 
@@ -46,12 +48,31 @@ const Profile = () => {
           .select("avatar_url, name, membership_level")
           .eq("id", user.id)
           .single();
+
         if (data && !error) {
           setAvatarUrl(data.avatar_url);
           setUserName(data.name);
           setMembershipLevel(data.membership_level);
-          // Cache the user data
-          localStorage.setItem("userData", JSON.stringify({ user, ...data }));
+
+          // Fetch post count
+          const { count, error: postError } = await supabase
+            .from("posts")
+            .select("id", { count: "exact" })
+            .eq("user_id", user.id);
+
+          if (!postError) {
+            setPostCount(count);
+          }
+
+          // Cache the user data including post count
+          localStorage.setItem(
+            "userData",
+            JSON.stringify({
+              user,
+              ...data,
+              post_count: count,
+            })
+          );
         }
       }
       setLoading(false);
@@ -137,7 +158,7 @@ const Profile = () => {
         </Link>
         <div className="w-px h-8 bg-gray-200" />
         <Link to="/records" className="text-center flex-1">
-          <div className="text-base font-medium">20</div>
+          <div className="text-base font-medium">{postCount}</div>
           <div className="text-xs text-muted-foreground">나의 기록</div>
         </Link>
         <div className="w-px h-8 bg-gray-200" />
