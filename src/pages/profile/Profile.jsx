@@ -20,6 +20,7 @@ const Profile = () => {
   const [membershipLevel, setMembershipLevel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -34,6 +35,7 @@ const Profile = () => {
         setUserName(parsedData.name);
         setMembershipLevel(parsedData.membership_level);
         setPostCount(parsedData.post_count || 0);
+        setCommentCount(parsedData.comment_count || 0);
         setLoading(false);
       }
 
@@ -64,6 +66,16 @@ const Profile = () => {
             setPostCount(count);
           }
 
+          // Fetch comment count
+          const { count: commentCount, error: commentError } = await supabase
+            .from("comments")
+            .select("id", { count: "exact" })
+            .eq("user_id", user.id);
+
+          if (!commentError) {
+            setCommentCount(commentCount);
+          }
+
           // Cache the user data including post count
           localStorage.setItem(
             "userData",
@@ -71,6 +83,7 @@ const Profile = () => {
               user,
               ...data,
               post_count: count,
+              comment_count: commentCount,
             })
           );
         }
@@ -163,7 +176,7 @@ const Profile = () => {
         </Link>
         <div className="w-px h-8 bg-gray-200" />
         <Link to="/comments" className="text-center flex-1">
-          <div className="text-base font-medium">45</div>
+          <div className="text-base font-medium">{commentCount}</div>
           <div className="text-xs text-muted-foreground">나의 댓글</div>
         </Link>
       </div>
