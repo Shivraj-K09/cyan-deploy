@@ -188,7 +188,7 @@ export default function MapView() {
       // newMap.setBounds(bounds);
 
       newMap.setMinLevel(3);
-      newMap.setMaxLevel(14);
+      newMap.setMaxLevel(13);
 
       setMap(newMap);
 
