@@ -737,10 +737,7 @@ export default function MyMap() {
         </button>
 
         {/* Camera Button */}
-        <button
-          onClick={() => navigate("/fish-catch-form")}
-          className="fixed bottom-[102px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50"
-        >
+        <button className="fixed bottom-[102px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-8 w-8"

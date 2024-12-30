@@ -2,10 +2,17 @@ import React, { useEffect, useState } from "react";
 import { openDB } from "idb";
 import { GlobeIcon, Loader2Icon, LocateIcon } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import { v4 as uuidv4 } from "uuid";
 
 const CACHE_KEY = "kakaoMapLoaded";
 const CACHE_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const NEARBY_POSTS_RADIUS = 20; // in kilometers
+
+// South Korea bounds
+const SOUTH_KOREA_BOUNDS = {
+  sw: { lat: 33.0041, lng: 124.5986 },
+  ne: { lat: 38.6687, lng: 131.884 },
+};
 
 const initIndexedDB = async () => {
   return openDB("KakaoMapsCache", 1, {
@@ -65,11 +72,14 @@ export default function MapView() {
   const [userLocation, setUserLocation] = useState(null);
   const [locationMarker, setLocationMarker] = useState(null);
   const [nearbyPosts, setNearbyPosts] = useState([]);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessageText, setSuccessMessageText] = useState("");
 
   const tabs = ["1주전", "2주전", "3주전", "한달전"];
 
   useEffect(() => {
     const loadKakaoMaps = async () => {
+      console.log("Starting to load Kakao Maps");
       const isLoaded = await getCachedData();
       if (isLoaded && window.kakao && window.kakao.maps) {
         console.log("Kakao Maps loaded from cache");
@@ -101,8 +111,9 @@ export default function MapView() {
     loadKakaoMaps();
   }, []);
 
-  useEffect(() => {
-    const fetchPublicPosts = async () => {
+  const fetchPublicPosts = async () => {
+    console.log("Starting to fetch public posts");
+    try {
       const { data, error } = await supabase
         .from("posts")
         .select(
@@ -121,70 +132,111 @@ export default function MapView() {
         .eq("visibility", "public");
 
       if (error) {
-        console.error("Error fetching public posts:", error);
-      } else {
-        setPublicPosts(data);
+        throw error;
       }
-    };
 
+      console.log("Fetched public posts:", data);
+      console.log("Number of public posts:", data.length);
+      if (data.length > 0) {
+        console.log("First post:", data[0]);
+      }
+      setPublicPosts(data);
+    } catch (error) {
+      console.error("Error fetching public posts:", error);
+      setPublicPosts([]);
+    }
+  };
+
+  useEffect(() => {
     fetchPublicPosts();
   }, []);
 
   useEffect(() => {
-    if (
-      kakaoMapsLoaded &&
-      !map &&
-      window.kakao &&
-      window.kakao.maps &&
-      publicPosts.length > 0
-    ) {
+    console.log("Map initialization effect triggered");
+    console.log("kakaoMapsLoaded:", kakaoMapsLoaded);
+    console.log("map:", map);
+    console.log("window.kakao:", window.kakao);
+    console.log("publicPosts:", publicPosts);
+    console.log("Number of public posts:", publicPosts.length);
+
+    if (kakaoMapsLoaded && !map && window.kakao && window.kakao.maps) {
+      console.log("Conditions met for map initialization");
       const container = document.getElementById("map");
+      console.log("Map container:", container);
+
       const options = {
-        center: new window.kakao.maps.LatLng(36.5, 127.5),
-        level: 13,
+        center: new window.kakao.maps.LatLng(
+          (SOUTH_KOREA_BOUNDS.sw.lat + SOUTH_KOREA_BOUNDS.ne.lat) / 2,
+          (SOUTH_KOREA_BOUNDS.sw.lng + SOUTH_KOREA_BOUNDS.ne.lng) / 2
+        ),
+        level: 13, // Set the zoom level to 13
       };
+
       const newMap = new window.kakao.maps.Map(container, options);
 
-      // Set minimum and maximum zoom levels
+      const bounds = new window.kakao.maps.LatLngBounds(
+        new window.kakao.maps.LatLng(
+          SOUTH_KOREA_BOUNDS.sw.lat,
+          SOUTH_KOREA_BOUNDS.sw.lng
+        ),
+        new window.kakao.maps.LatLng(
+          SOUTH_KOREA_BOUNDS.ne.lat,
+          SOUTH_KOREA_BOUNDS.ne.lng
+        )
+      );
+
+      // newMap.setBounds(bounds);
+
       newMap.setMinLevel(3);
       newMap.setMaxLevel(14);
 
-      newMap.setLevel(13);
-
       setMap(newMap);
 
-      const bounds = new window.kakao.maps.LatLngBounds();
+      if (publicPosts.length > 0) {
+        const postBounds = new window.kakao.maps.LatLngBounds();
 
-      publicPosts.forEach((post) => {
-        if (
-          post.locations &&
-          post.locations.latitude &&
-          post.locations.longitude
-        ) {
-          const position = new window.kakao.maps.LatLng(
-            post.locations.latitude,
+        publicPosts.forEach((post) => {
+          if (
+            post.locations &&
+            post.locations.latitude &&
             post.locations.longitude
-          );
-          const marker = new window.kakao.maps.Marker({ position });
+          ) {
+            const position = new window.kakao.maps.LatLng(
+              post.locations.latitude,
+              post.locations.longitude
+            );
+            const marker = new window.kakao.maps.Marker({ position });
 
-          const customOverlay = new window.kakao.maps.CustomOverlay({
-            position: position,
-          });
+            const customOverlay = new window.kakao.maps.CustomOverlay({
+              position: position,
+              content: `<div class="custom-overlay">${post.description}</div>`,
+            });
 
-          marker.setMap(newMap);
-          customOverlay.setMap(newMap);
+            marker.setMap(newMap);
+            customOverlay.setMap(newMap);
 
-          bounds.extend(position);
+            postBounds.extend(position);
+          }
+        });
+
+        // If posts are within South Korea, fit to post bounds
+        if (bounds.contain(postBounds)) {
+          newMap.setBounds(postBounds);
+        } else {
+          // Otherwise, fit to South Korea bounds
+          newMap.setBounds(bounds);
         }
-      });
-
-      newMap.setBounds(bounds);
-      newMap.setLevel(13);
+      } else {
+        console.log("No posts available, using South Korea bounds");
+        newMap.setBounds(bounds);
+      }
 
       window.kakao.maps.event.addListener(newMap, "zoom_changed", function () {
         const currentLevel = newMap.getLevel();
         console.log("Current zoom level:", currentLevel);
       });
+    } else {
+      console.log("Conditions not met for map initialization");
     }
   }, [kakaoMapsLoaded, map, publicPosts]);
 
@@ -194,7 +246,6 @@ export default function MapView() {
   };
 
   const useTestLocation = () => {
-    // Using a location in Seoul, Korea for testing
     const testLatitude = 37.5665;
     const testLongitude = 126.978;
     console.log("Using test location in Seoul:", {
@@ -208,23 +259,19 @@ export default function MapView() {
         testLongitude
       );
       map.setCenter(newCenter);
-      map.setLevel(3); // Zoom in closer
+      map.setLevel(3);
 
-      // Remove existing location marker if any
       if (locationMarker) {
         locationMarker.setMap(null);
       }
 
-      // Add a new marker for the test location
       const newMarker = new window.kakao.maps.Marker({
         position: newCenter,
         map: map,
       });
 
-      // Set the new marker
       setLocationMarker(newMarker);
 
-      // Find nearby posts
       const nearby = findNearbyPosts(
         testLatitude,
         testLongitude,
@@ -232,7 +279,6 @@ export default function MapView() {
       );
       setNearbyPosts(nearby);
 
-      // Update map with nearby posts
       updateMapWithNearbyPosts(nearby, map);
     }
   };
@@ -242,9 +288,8 @@ export default function MapView() {
     longitude,
     radius = NEARBY_POSTS_RADIUS
   ) => {
-    // Function to calculate distance between two points using Haversine formula
     const getDistance = (lat1, lon1, lat2, lon2) => {
-      const R = 6371; // Radius of the Earth in km
+      const R = 6371;
       const dLat = (lat2 - lat1) * (Math.PI / 180);
       const dLon = (lon2 - lon1) * (Math.PI / 180);
       const a =
@@ -254,7 +299,7 @@ export default function MapView() {
           Math.sin(dLon / 2) *
           Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // Distance in km
+      return R * c;
     };
 
     return publicPosts.filter((post) => {
@@ -276,10 +321,8 @@ export default function MapView() {
   };
 
   const updateMapWithNearbyPosts = (posts, map) => {
-    // Clear existing markers (except user location marker)
     map.removeOverlayMapTypeId(window.kakao.maps.MapTypeId.TRAFFIC);
 
-    // Add markers for nearby posts
     posts.forEach((post) => {
       const position = new window.kakao.maps.LatLng(
         post.locations.latitude,
@@ -290,9 +333,7 @@ export default function MapView() {
         map: map,
       });
 
-      // You can add click event listeners to markers here if needed
       window.kakao.maps.event.addListener(marker, "click", function () {
-        // Handle marker click (e.g., show post details)
         console.log("Clicked post:", post);
       });
     });
@@ -309,8 +350,203 @@ export default function MapView() {
     }
   };
 
+  const saveImageToGallery = async (file) => {
+    if (
+      "mediaDevices" in navigator &&
+      "getDisplayMedia" in navigator.mediaDevices
+    ) {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+        });
+        stream.getTracks().forEach((track) => track.stop());
+
+        if ("share" in navigator) {
+          const filesArray = [
+            new File([file], "captured_image.jpg", { type: "image/jpeg" }),
+          ];
+          await navigator.share({
+            files: filesArray,
+            title: "Save to Gallery",
+            text: "Save this image to your gallery",
+          });
+          return true;
+        } else {
+          console.log("Web Share API not supported");
+          return false;
+        }
+      } catch (error) {
+        console.error("Error saving image to gallery:", error);
+        return false;
+      }
+    } else {
+      console.log("MediaDevices API not supported");
+      return false;
+    }
+  };
+
+  const handleImageCapture = async (file) => {
+    console.log("Processing captured image:", file);
+
+    let savedToGallery = false;
+
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    if (isMobile) {
+      savedToGallery = await saveImageToGallery(file);
+    } else {
+      // For desktop, create a download link
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "captured_image.jpg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      savedToGallery = true;
+    }
+
+    if (savedToGallery) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data, error } = await supabase.from("user_gallery").insert({
+          user_id: user.id,
+          image_url: "local://captured_image.jpg", // This is a placeholder, as we don't have an actual URL
+        });
+
+        if (error) {
+          console.error("Error adding image to gallery:", error);
+        } else {
+          console.log("Image added to user's gallery:", data);
+        }
+      } else {
+        console.error("No user logged in");
+      }
+
+      setSuccessMessageText(
+        isMobile
+          ? "Image saved to your gallery successfully!"
+          : "Image downloaded successfully!"
+      );
+    } else {
+      setSuccessMessageText("Failed to save image. Please try again.");
+    }
+
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+  };
+
+  const handleOpenCamera = () => {
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    if (isMobile) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+      input.click();
+
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          console.log("Image captured on mobile:", file);
+          handleImageCapture(file);
+        }
+      };
+    } else {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({
+            video: true,
+          })
+          .then((stream) => {
+            const video = document.createElement("video");
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.style.position = "fixed";
+            video.style.top = "0";
+            video.style.left = "0";
+            video.style.width = "100%";
+            video.style.height = "100%";
+            video.style.zIndex = "1000";
+            document.body.appendChild(video);
+
+            const captureButton = document.createElement("button");
+            captureButton.textContent = "Capture";
+            captureButton.style.position = "fixed";
+            captureButton.style.bottom = "20px";
+            captureButton.style.left = "50%";
+            captureButton.style.transform = "translateX(-50%)";
+            captureButton.style.zIndex = "1001";
+            document.body.appendChild(captureButton);
+
+            captureButton.onclick = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              canvas.getContext("2d").drawImage(video, 0, 0);
+              canvas.toBlob((blob) => {
+                const file = new File([blob], "captured_image.jpg", {
+                  type: "image/jpeg",
+                });
+                console.log("Image captured on desktop:", file);
+                handleImageCapture(file);
+
+                // Clean up
+                stream.getTracks().forEach((track) => track.stop());
+                document.body.removeChild(video);
+                document.body.removeChild(captureButton);
+              }, "image/jpeg");
+            };
+          })
+          .catch((error) => {
+            console.error("Error accessing camera:", error);
+            // Fallback to file input if camera access fails
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
+            input.click();
+
+            input.onchange = (e) => {
+              const file = e.target.files[0];
+              if (file) {
+                console.log("Image selected:", file);
+                handleImageCapture(file);
+              }
+            };
+          });
+      } else {
+        console.error("getUserMedia is not supported in this browser");
+        // Fallback to regular file input
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.click();
+
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            console.log("Image selected:", file);
+            handleImageCapture(file);
+          }
+        };
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      {console.log("Rendering MapView component")}
       {/* Tabs */}
       <div className="flex p-2 gap-2 bg-white relative z-10">
         {tabs.map((tab, index) => (
@@ -336,6 +572,7 @@ export default function MapView() {
           marginTop: "-40px",
         }}
       >
+        {console.log("Rendering map container")}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-20">
             <Loader2Icon className="h-10 w-10 animate-spin text-primary" />
@@ -361,7 +598,10 @@ export default function MapView() {
         </div>
 
         {/* Camera Button */}
-        <button className="fixed bottom-[80px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50">
+        <button
+          onClick={handleOpenCamera}
+          className="fixed bottom-[90px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-8 w-8"
@@ -378,6 +618,13 @@ export default function MapView() {
             <circle cx="12" cy="13" r="4"></circle>
           </svg>
         </button>
+
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="fixed bottom-24 left-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-md">
+            {successMessageText}
+          </div>
+        )}
       </div>
 
       {/* Bottom Navigation */}
