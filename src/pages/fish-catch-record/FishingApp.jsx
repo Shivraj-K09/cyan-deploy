@@ -1,30 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { toast, Toaster } from "sonner";
+import { supabase } from "../../lib/supabaseClient";
 import {
   Search,
-  MapPin,
-  Flag,
-  ShoppingBag,
-  User,
-  PenLine,
-  LinkIcon,
   YoutubeIcon,
   InstagramIcon,
   FacebookIcon,
   Globe,
-  HeartIcon,
   LockIcon,
   Trash2,
   XIcon,
   PenSquare,
+  PenLine,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { PiHandsClapping } from "react-icons/pi";
+import { LuMessageCircle } from "react-icons/lu";
 import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import { supabase } from "../../lib/supabaseClient";
 import {
   Card,
   CardContent,
@@ -36,9 +35,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from "../../components/ui/carousel";
-import { PiHandsClapping } from "react-icons/pi";
-import { LuMessageCircle } from "react-icons/lu";
-import { Separator } from "../../components/ui/separator";
 import {
   Drawer,
   DrawerClose,
@@ -49,13 +45,34 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../../components/ui/drawer";
-import { Button } from "../../components/ui/button";
-import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
-import { Toaster } from "../../components/ui/sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import LoadingSpinner from "../../components/LoadingSpinner";
+
+const DUMMY_POSTS = [
+  {
+    id: "dummy1",
+    user_id: "dummy_user",
+    created_at: new Date().toISOString(),
+    image_urls: ["/placeholder.svg?height=300&width=400"],
+    description:
+      "This is a dummy post to show how posts will appear. Create your first post to see it here!",
+    likes_count: 0,
+    comments_count: 0,
+    visibility: "public",
+  },
+  {
+    id: "dummy2",
+    user_id: "dummy_user",
+    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    image_urls: ["/placeholder.svg?height=300&width=400"],
+    description:
+      "Another example post. Your fishing adventures will show up like this!",
+    likes_count: 0,
+    comments_count: 0,
+    visibility: "public",
+  },
+];
 
 const FishingApp = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -679,124 +696,128 @@ const FishingApp = () => {
 
           {/* Content Area */}
           <div className="mb-5 flex flex-col gap-5 px-4">
-            {posts.length === 0 ? (
-              <div className="text-center text-gray-500">No posts found.</div>
-            ) : (
-              posts.map((post, index) => {
-                const user = users[post.user_id];
-                const isPrivate = post.visibility === "private";
-                return (
-                  <Card key={post.id} className="w-full shadow-none">
-                    <CardHeader className="p-4">
-                      <div className="flex items-center gap-2 justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage
-                              src={user?.avatar_url}
-                              alt={user?.name}
-                            />
-                            <AvatarFallback>
-                              {user?.name
-                                ? user.name.charAt(0).toUpperCase()
-                                : "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {user?.name || "Unknown User"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {calculateTimeAgo(post.created_at)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isPrivate && (
-                            <LockIcon className="h-4 w-4 text-gray-500" />
-                          )}
-                          {post.link && (
-                            <>
-                              <a
-                                href={post.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:opacity-75 transition-opacity"
-                              >
-                                {getLinkIcon(post.link)}
-                              </a>
-                              {currentUser &&
-                                currentUser.id === post.user_id && (
-                                  <button
-                                    onClick={() => handleRemoveLink(post.id)}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                )}
-                            </>
-                          )}
+            {(posts.length === 0 ? DUMMY_POSTS : posts).map((post, index) => {
+              const user = users[post.user_id];
+              const isPrivate = post.visibility === "private";
+              return (
+                <Card key={post.id} className="w-full shadow-none">
+                  <CardHeader className="p-4">
+                    <div className="flex items-center gap-2 justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage
+                            src={
+                              post.id.startsWith("dummy")
+                                ? "/placeholder.svg?height=32&width=32"
+                                : user?.avatar_url
+                            }
+                            alt={
+                              post.id.startsWith("dummy")
+                                ? "Dummy User"
+                                : user?.name
+                            }
+                          />
+                          <AvatarFallback>
+                            {post.id.startsWith("dummy")
+                              ? "D"
+                              : user?.name
+                              ? user.name.charAt(0).toUpperCase()
+                              : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {post.id.startsWith("dummy")
+                              ? "Dummy User"
+                              : user?.name || "Unknown User"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {calculateTimeAgo(post.created_at)}
+                          </span>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      {post.image_urls &&
-                        post.image_urls.length > 0 &&
-                        (post.image_urls.length === 1 ? (
-                          <div className="w-full h-64 ">
-                            <img
-                              src={post.image_urls[0]}
-                              alt={`Post image`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <Carousel className="w-full">
-                            <CarouselContent>
-                              {post.image_urls.map((imageUrl, index) => (
-                                <CarouselItem key={index} className="h-64">
-                                  <img
-                                    src={imageUrl}
-                                    alt={`Post image ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                          </Carousel>
-                        ))}
-                      <div className="p-4">
-                        <p className="text-sm text-justify">
-                          {post.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col p-4 !pt-0 ">
-                      <div className="flex flex-col gap-2 w-full">
-                        {post.top_comments &&
-                          post.top_comments.map((comment, index) => (
-                            <div
-                              key={index}
-                              className="flex gap-2 items-center"
+                      <div className="flex items-center gap-2">
+                        {isPrivate && (
+                          <LockIcon className="h-4 w-4 text-gray-500" />
+                        )}
+                        {post.link && (
+                          <>
+                            <a
+                              href={post.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:opacity-75 transition-opacity"
                             >
-                              <div className="flex items-center gap-1">
-                                <span className="font-bold text-sm">
-                                  {comment.user_name}
-                                </span>
-                                {comment.user_id === post.user_id && (
-                                  <div className="relative group">
-                                    <PenSquare className="h-3.5 w-3.5 text-blue-500" />
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                      Author
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              <span className="text-sm truncate flex-1">
-                                {comment.content}
-                              </span>
-                            </div>
-                          ))}
+                              {getLinkIcon(post.link)}
+                            </a>
+                            {currentUser && currentUser.id === post.user_id && (
+                              <button
+                                onClick={() => handleRemoveLink(post.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {post.image_urls &&
+                      post.image_urls.length > 0 &&
+                      (post.image_urls.length === 1 ? (
+                        <div className="w-full h-64 ">
+                          <img
+                            src={post.image_urls[0]}
+                            alt={`Post image`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <Carousel className="w-full">
+                          <CarouselContent>
+                            {post.image_urls.map((imageUrl, index) => (
+                              <CarouselItem key={index} className="h-64">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Post image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                        </Carousel>
+                      ))}
+                    <div className="p-4">
+                      <p className="text-sm text-justify">{post.description}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col p-4 !pt-0 ">
+                    <div className="flex flex-col gap-2 w-full">
+                      {post.top_comments &&
+                        post.top_comments.map((comment, index) => (
+                          <div key={index} className="flex gap-2 items-center">
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold text-sm">
+                                {comment.user_name}
+                              </span>
+                              {comment.user_id === post.user_id && (
+                                <div className="relative group">
+                                  <PenSquare className="h-3.5 w-3.5 text-blue-500" />
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    Author
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm truncate flex-1">
+                              {comment.content}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                    {!post.id.startsWith("dummy") && (
                       <div className="mt-3 flex items-center gap-5 w-full">
                         <div className="flex items-center gap-1">
                           <PiHandsClapping
@@ -921,11 +942,11 @@ const FishingApp = () => {
                           )}
                         </div>
                       </div>
-                    </CardFooter>
-                  </Card>
-                );
-              })
-            )}
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Floating Action Button */}

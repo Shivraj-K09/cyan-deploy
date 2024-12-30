@@ -1,5 +1,4 @@
 import {
-  ImageIcon,
   XIcon,
   LinkIcon,
   YoutubeIcon,
@@ -25,6 +24,56 @@ import {
   clearAllData,
 } from "../../utils/indexedDB";
 
+const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
+  const getLabel = (index) => {
+    switch (index) {
+      case 0:
+        return "Length of Fish Species";
+      case 1:
+        return "Increase the length";
+      case 2:
+        return "Location 1";
+      case 3:
+        return "Location 2";
+      default:
+        return "사진";
+    }
+  };
+
+  return (
+    <div className="relative w-full aspect-square flex items-center justify-center text-gray-400 bg-gray-200 overflow-hidden">
+      {image ? (
+        <>
+          <img
+            src={image.preview}
+            alt={`Uploaded ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
+          >
+            <XIcon className="w-3.5 h-3.5" />
+          </button>
+        </>
+      ) : (
+        <label className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
+          <span className="text-sm text-muted-foreground font-medium">
+            {getLabel(index)}
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onUpload(e, index)}
+            className="hidden"
+          />
+        </label>
+      )}
+    </div>
+  );
+};
+
 const FishCatchForm = () => {
   const [images, setImages] = useState([]);
   const [link, setLink] = useState("");
@@ -34,7 +83,7 @@ const FishCatchForm = () => {
   const [map, setMap] = useState(null);
   const [kakaoMapsLoaded, setKakaoMapsLoaded] = useState(false);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
-  const [isFullyInitialized, setIsFullyInitialized] = useState(false); // Added state variable
+  const [isFullyInitialized, setIsFullyInitialized] = useState(false);
   const customOverlayRef = useRef(null);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState({ place: null, fullAddress: null });
@@ -64,7 +113,6 @@ const FishCatchForm = () => {
     setIsFullyInitialized(true);
     console.log("Map and geocoder initialized successfully");
 
-    // Set initial marker on Seoul
     setLocation(SEOUL_COORDINATES);
   }, []);
 
@@ -124,12 +172,10 @@ const FishCatchForm = () => {
         }
       );
 
-      // Remove existing custom overlay if it exists
       if (customOverlayRef.current) {
         customOverlayRef.current.setMap(null);
       }
 
-      // Create new custom overlay with MapPin icon
       const content = `
     <div style="position: absolute; bottom: 0; left: -20px;">
       <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#128100" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
@@ -148,7 +194,6 @@ const FishCatchForm = () => {
 
       customOverlayRef.current = customOverlay;
 
-      // Use panTo for smooth transition
       map.panTo(latlng);
 
       console.log("New custom overlay created and map panned smoothly");
@@ -250,36 +295,48 @@ const FishCatchForm = () => {
 
       const imageKeys = await Promise.all(
         images.map(async (image, index) => {
-          const key = `image_${index}`;
-          await setImage(key, {
-            blob: await image.file.arrayBuffer(),
-            name: image.file.name,
-            type: image.file.type,
-          });
-          return key;
+          if (image && image.file) {
+            const key = `image_${index}`;
+            await setImage(key, {
+              blob: await image.file.arrayBuffer(),
+              name: image.file.name,
+              type: image.file.type,
+            });
+            return key;
+          }
+          return null;
         })
       );
 
-      await setFormData("imageKeys", imageKeys);
+      await setFormData("imageKeys", imageKeys.filter(Boolean));
     };
 
     saveFormData();
   }, [link, description, images, location]);
 
-  const handleImageUpload = useCallback(async (e) => {
-    const files = Array.from(e.target.files || []);
-    const newImages = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setImages((prevImages) => [...prevImages, ...newImages].slice(0, 4));
+  const handleImageUpload = useCallback(async (e, index) => {
+    const file = e.target.files[0];
+    if (file) {
+      const newImage = {
+        file,
+        preview: URL.createObjectURL(file),
+      };
+      setImages((prevImages) => {
+        const newImages = [...prevImages];
+        newImages[index] = newImage;
+        return newImages;
+      });
+    }
   }, []);
 
   const removeImage = useCallback(async (index) => {
     await deleteImage(`image_${index}`);
     setImages((prevImages) => {
-      const updatedImages = prevImages.filter((_, i) => i !== index);
-      URL.revokeObjectURL(prevImages[index].preview);
+      const updatedImages = [...prevImages];
+      if (updatedImages[index]) {
+        URL.revokeObjectURL(updatedImages[index].preview);
+        updatedImages[index] = null;
+      }
       return updatedImages;
     });
   }, []);
@@ -308,7 +365,7 @@ const FishCatchForm = () => {
 
     try {
       const imageUrls = await Promise.all(
-        images.map(async (image) => {
+        images.filter(Boolean).map(async (image) => {
           const fileName = `${user.id}/${Date.now()}-${image.file.name}`;
           const { data, error } = await supabase.storage
             .from("fish-catch-images")
@@ -334,7 +391,6 @@ const FishCatchForm = () => {
         })
       );
 
-      // Insert location first
       const { data: locationData, error: locationError } = await supabase
         .from("locations")
         .insert({
@@ -390,7 +446,11 @@ const FishCatchForm = () => {
 
       await clearAllData();
 
-      images.forEach((image) => URL.revokeObjectURL(image.preview));
+      images.forEach((image) => {
+        if (image && image.preview) {
+          URL.revokeObjectURL(image.preview);
+        }
+      });
 
       navigate("/fish-catch-record");
     } catch (error) {
@@ -439,37 +499,13 @@ const FishCatchForm = () => {
             </label>
             <div className="grid grid-cols-2 gap-4 w-full">
               {[...Array(4)].map((_, index) => (
-                <div
+                <ImageUploadSquare
                   key={index}
-                  className="relative w-full aspect-square flex items-center justify-center text-gray-400 bg-gray-200 overflow-hidden"
-                >
-                  {images[index] ? (
-                    <>
-                      <img
-                        src={images[index].preview}
-                        alt={`Uploaded ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
-                      >
-                        <XIcon className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
-                      <ImageIcon className="w-10 h-10" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
+                  index={index}
+                  image={images[index]}
+                  onRemove={removeImage}
+                  onUpload={handleImageUpload}
+                />
               ))}
             </div>
           </div>
