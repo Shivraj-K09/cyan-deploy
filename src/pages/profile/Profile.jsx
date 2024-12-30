@@ -183,33 +183,39 @@ const Profile = () => {
       <hr className="my-4 border-t border-gray-200" />
 
       {/* Menu List */}
-      <div className="flex-1 mt-6 overflow-y-auto pb-24">
-        <Link to="/inbox" className="block px-4 py-3 mb-1">
+      <div className="flex-1 mt-6 overflow-y-auto space-y-1 pb-24">
+        <Link to="/inbox" className="block px-4 py-3">
           <span className="text-sm">내편지함</span>
         </Link>
-        <Link to="/shopping-cart" className="block px-4 py-3 mb-1">
+        <Link to="/shopping-cart" className="block px-4 py-3">
           <span className="text-sm">장바구니</span>
         </Link>
-        <Link to="/orders" className="block px-4 py-3 mb-1">
+        <Link to="/orders" className="block px-4 py-3">
           <span className="text-sm">주문내역 / 배송정보</span>
         </Link>
-        <Link to="/notices" className="block px-4 py-3 mb-1">
+        <Link to="/notices" className="block px-4 py-3">
           <span className="text-sm">공지사항</span>
         </Link>
-        <Link to="/guide" className="block px-4 py-3 mb-1">
+        <Link to="/guide" className="block px-4 py-3">
           <span className="text-sm">이용 가이드</span>
         </Link>
         <hr className="my-4 border-t border-gray-200" />
-        <Link to="/product-reviews" className="block px-4 py-3 mb-1">
+        <Link to="/product-reviews" className="block px-4 py-3">
           <span className="text-sm">제품리뷰</span>
         </Link>
-        <Link to="/subscribe" className="block px-4 py-3 mb-1">
+        <Link to="/subscribe" className="block px-4 py-3">
           <span className="text-sm">유료 구독하기</span>
         </Link>
-        <div className="px-4 py-3 mb-1">
+        <div className="px-4 py-3">
           <span className="text-sm">이벤트</span>
         </div>
-        <div className="px-4 py-3 mb-1">
+
+        <div className="px-4 py-2">
+          <div className="w-full py-6 px-4 shadow-sm border rounded-lg">
+            Ad Will show in this section
+          </div>
+        </div>
+        <div className="px-4 py-3">
           <Link to="/customer-service" className="block">
             <span className="text-sm">고객센터</span>
           </Link>

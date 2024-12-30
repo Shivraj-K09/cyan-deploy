@@ -40,6 +40,21 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
     }
   };
 
+  const getPlaceholderImage = (index) => {
+    switch (index) {
+      case 0:
+        return "/img1.jpeg";
+      case 1:
+        return "/img2.jpeg";
+      case 2:
+        return "/img3.jpeg";
+      case 3:
+        return "/img4.jpeg";
+      default:
+        return "/placeholder.svg?height=200&width=200";
+    }
+  };
+
   return (
     <div className="relative w-full aspect-square flex items-center justify-center text-gray-400 bg-gray-200 overflow-hidden">
       {image ? (
@@ -49,6 +64,11 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
             alt={`Uploaded ${index + 1}`}
             className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <span className="text-sm text-white font-medium text-center px-2">
+              {getLabel(index)}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => onRemove(index)}
@@ -58,10 +78,17 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
           </button>
         </>
       ) : (
-        <label className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
-          <span className="text-sm text-muted-foreground font-medium">
-            {getLabel(index)}
-          </span>
+        <label className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors relative">
+          <img
+            src={getPlaceholderImage(index)}
+            alt={getLabel(index)}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <span className="text-sm text-white/90 font-medium text-center px-2">
+              {getLabel(index)}
+            </span>
+          </div>
           <input
             type="file"
             accept="image/*"
