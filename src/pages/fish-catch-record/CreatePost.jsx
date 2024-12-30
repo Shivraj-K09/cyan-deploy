@@ -28,13 +28,13 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
   const getLabel = (index) => {
     switch (index) {
       case 0:
-        return "Length of Fish Species";
+        return "어종";
       case 1:
-        return "Increase the length";
+        return "길이확대";
       case 2:
-        return "Location 1";
+        return "장소1";
       case 3:
-        return "Location 2";
+        return "장소2";
       default:
         return "사진";
     }
@@ -64,11 +64,7 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
             alt={`Uploaded ${index + 1}`}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <span className="text-sm text-white font-medium text-center px-2">
-              {getLabel(index)}
-            </span>
-          </div>
+
           <button
             type="button"
             onClick={() => onRemove(index)}
@@ -84,8 +80,8 @@ const ImageUploadSquare = ({ index, image, onRemove, onUpload }) => {
             alt={getLabel(index)}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <span className="text-sm text-white/90 font-medium text-center px-2">
+          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <span className="text-sm text-white font-medium text-center px-2">
               {getLabel(index)}
             </span>
           </div>

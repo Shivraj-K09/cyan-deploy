@@ -40,7 +40,6 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -54,23 +53,51 @@ const DUMMY_POSTS = [
     id: "dummy1",
     user_id: "dummy_user",
     created_at: new Date().toISOString(),
-    image_urls: ["/placeholder.svg?height=300&width=400"],
+    image_urls: ["/img1.jpeg", "/img2.jpeg", "/img3.jpeg", "/img4.jpeg"],
     description:
       "This is a dummy post to show how posts will appear. Create your first post to see it here!",
-    likes_count: 0,
-    comments_count: 0,
+    likes_count: 15,
+    comments_count: 3,
     visibility: "public",
-  },
-  {
-    id: "dummy2",
-    user_id: "dummy_user",
-    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    image_urls: ["/placeholder.svg?height=300&width=400"],
-    description:
-      "Another example post. Your fishing adventures will show up like this!",
-    likes_count: 0,
-    comments_count: 0,
-    visibility: "public",
+    comments: [
+      {
+        id: "dummy_comment1",
+        user_id: "dummy_commenter1",
+        user_name: "John Doe",
+        content: "Great post! Looking forward to more content.",
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: "dummy_comment2",
+        user_id: "dummy_commenter2",
+        user_name: "Jane Smith",
+        content: "This is really interesting. Thanks for sharing!",
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+      },
+      {
+        id: "dummy_comment3",
+        user_id: "dummy_commenter3",
+        user_name: "Bob Johnson",
+        content: "I love seeing these updates. Keep them coming!",
+        created_at: new Date(Date.now() - 10800000).toISOString(),
+      },
+    ],
+    top_comments: [
+      {
+        id: "dummy_comment2",
+        user_id: "dummy_commenter2",
+        user_name: "Jane Smith",
+        content: "This is really interesting. Thanks for sharing!",
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+      },
+      {
+        id: "dummy_comment3",
+        user_id: "dummy_commenter3",
+        user_name: "Bob Johnson",
+        content: "I love seeing these updates. Keep them coming!",
+        created_at: new Date(Date.now() - 10800000).toISOString(),
+      },
+    ],
   },
 ];
 
@@ -140,8 +167,6 @@ const FishingApp = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      console.log("Fetching posts...");
-
       let { data: fetchedPosts, error } = await supabase
         .from("posts")
         .select(
@@ -163,7 +188,6 @@ const FishingApp = () => {
 
       if (error) throw error;
 
-      // For each post, get accurate likes count
       const postsWithLikes = await Promise.all(
         fetchedPosts.map(async (post) => {
           const { data: likes, error: likesError } = await supabase
@@ -184,9 +208,6 @@ const FishingApp = () => {
         })
       );
 
-      console.log("Posts with accurate likes:", postsWithLikes);
-
-      // Fetch user data for all users involved in posts and comments
       const userIds = new Set();
       postsWithLikes.forEach((post) => {
         userIds.add(post.user_id);
@@ -205,24 +226,20 @@ const FishingApp = () => {
         userMap[user.id] = user;
       });
 
-      // Process posts with comments and likes
-      const processedPosts = postsWithLikes.map((post) => {
-        return {
-          ...post,
-          comments: post.comments.map((comment) => ({
-            ...comment,
-            user_name: userMap[comment.user_id]?.name || "Unknown User",
-          })),
-          top_comments: post.comments.slice(-2).map((comment) => ({
-            ...comment,
-            user_name: userMap[comment.user_id]?.name || "Unknown User",
-          })),
-          comments_count: post.comments.length,
-          user_has_liked: post.user_has_liked,
-        };
-      });
+      const processedPosts = postsWithLikes.map((post) => ({
+        ...post,
+        comments: post.comments.map((comment) => ({
+          ...comment,
+          user_name: userMap[comment.user_id]?.name || "Unknown User",
+        })),
+        top_comments: post.comments.slice(-2).map((comment) => ({
+          ...comment,
+          user_name: userMap[comment.user_id]?.name || "Unknown User",
+        })),
+        comments_count: post.comments.length,
+        user_has_liked: post.user_has_liked,
+      }));
 
-      console.log("Processed posts:", processedPosts);
       setPosts(processedPosts);
       setUsers(userMap);
     } catch (error) {
@@ -263,26 +280,16 @@ const FishingApp = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "likes" },
         async (payload) => {
-          console.log("Real-time like event:", payload);
           const postId = payload.new?.post_id || payload.old?.post_id;
+          if (!postId) return;
 
-          if (!postId) {
-            console.error("Invalid postId in real-time like event");
-            return;
-          }
-
-          // Fetch the updated likes count
           const { data: updatedLikes, error: likesError } = await supabase
             .from("likes")
             .select("id, user_id")
             .eq("post_id", postId);
 
-          if (likesError) {
-            console.error("Error fetching updated likes:", likesError);
-            return;
-          }
+          if (likesError) return;
 
-          // Update the posts state with the accurate likes count from the backend
           setPosts((prevPosts) => {
             return prevPosts.map((post) => {
               if (post.id === postId) {
@@ -295,7 +302,6 @@ const FishingApp = () => {
                         (like) => like.user_id === currentUser.id
                       )
                     : false,
-                  // Preserve the existing comments_count
                   comments_count: post.comments_count,
                 };
               }
@@ -308,15 +314,9 @@ const FishingApp = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "comments" },
         async (payload) => {
-          console.log("Real-time comment event:", payload);
           const postId = payload.new?.post_id || payload.old?.post_id;
+          if (!postId) return;
 
-          if (!postId) {
-            console.error("Invalid postId in real-time comment event");
-            return;
-          }
-
-          // Fetch the latest data
           const { data: updatedPost, error } = await supabase
             .from("posts")
             .select(
@@ -337,10 +337,7 @@ const FishingApp = () => {
             .eq("id", postId)
             .single();
 
-          if (error) {
-            console.error("Error fetching updated post:", error);
-            return;
-          }
+          if (error) return;
 
           if (updatedPost) {
             setPosts((currentPosts) =>
@@ -386,31 +383,21 @@ const FishingApp = () => {
 
   const toggleLikeBackend = async (postId) => {
     const post = posts.find((p) => p.id === postId);
-    if (!post) {
-      console.error("Post not found");
-      return { success: false };
-    }
+    if (!post) return { success: false };
 
     try {
       if (post.user_has_liked) {
-        // Unlike the post
-        const { error } = await supabase
+        await supabase
           .from("likes")
           .delete()
           .eq("post_id", postId)
           .eq("user_id", currentUser.id);
-
-        if (error) throw error;
       } else {
-        // Like the post
-        const { error } = await supabase
+        await supabase
           .from("likes")
           .insert({ post_id: postId, user_id: currentUser.id });
-
-        if (error) throw error;
       }
 
-      // Fetch the updated likes count
       const { data: updatedLikes, error: likesError } = await supabase
         .from("likes")
         .select("id, user_id")
@@ -418,7 +405,6 @@ const FishingApp = () => {
 
       if (likesError) throw likesError;
 
-      // Update the posts state with the accurate likes count from the backend
       setPosts((prevPosts) => {
         return prevPosts.map((p) => {
           if (p.id === postId) {
@@ -428,7 +414,6 @@ const FishingApp = () => {
               user_has_liked: updatedLikes.some(
                 (like) => like.user_id === currentUser.id
               ),
-              // Preserve other properties
               comments: p.comments,
               comments_count: p.comments_count,
               top_comments: p.top_comments,
@@ -446,30 +431,19 @@ const FishingApp = () => {
   };
 
   const handleLike = async (postId) => {
-    console.log("handleLike called with postId:", postId);
+    if (postId.startsWith("dummy")) return;
     if (!currentUser) {
       toast.error("Please log in to like posts");
       return;
     }
 
-    if (!postId) {
-      console.error("Invalid postId in handleLike");
-      return;
-    }
-
     const originalPost = posts.find((p) => p.id === postId);
-    console.log("Original post state:", originalPost);
-
-    // Optimistically update the UI
     setPosts((prevPosts) => {
       return prevPosts.map((p) => {
         if (p.id === postId) {
           const newLikesCount = p.user_has_liked
             ? p.likes_count - 1
             : p.likes_count + 1;
-          console.log(
-            `Optimistic update - Post ${postId} - New Likes: ${newLikesCount}, Comments: ${p.comments_count}`
-          );
           return {
             ...p,
             likes_count: newLikesCount,
@@ -480,23 +454,12 @@ const FishingApp = () => {
       });
     });
 
-    // Perform the actual like/unlike operation and verify with the backend
     try {
       const result = await toggleLikeBackend(postId);
-      console.log("Backend toggle result:", result);
       if (!result.success) {
-        // If the backend operation failed, revert the optimistic update
-        setPosts((prevPosts) => {
-          return prevPosts.map((p) => {
-            if (p.id === postId) {
-              console.log(
-                `Reverting optimistic update - Post ${postId} - Original Likes: ${originalPost.likes_count}, Comments: ${originalPost.comments_count}`
-              );
-              return originalPost;
-            }
-            return p;
-          });
-        });
+        setPosts((prevPosts) =>
+          prevPosts.map((p) => (p.id === postId ? originalPost : p))
+        );
         toast.error("Failed to update like. Please try again.");
       }
     } catch (error) {
@@ -515,9 +478,8 @@ const FishingApp = () => {
       return;
     }
 
-    // Optimistically update the UI
     const newCommentObj = {
-      id: Date.now(), // Temporary ID
+      id: Date.now(),
       content: newComment.trim(),
       created_at: new Date().toISOString(),
       user_id: currentUser.id,
@@ -538,7 +500,7 @@ const FishingApp = () => {
       });
     });
 
-    setNewComment(""); // Clear the input field
+    setNewComment("");
 
     try {
       const { data, error } = await supabase
@@ -552,7 +514,6 @@ const FishingApp = () => {
 
       if (error) throw error;
 
-      // Update the post with the actual comment data from the server
       setPosts((prevPosts) => {
         return prevPosts.map((p) => {
           if (p.id === postId) {
@@ -574,7 +535,6 @@ const FishingApp = () => {
       console.error("Error adding comment:", error.message);
       toast.error("Failed to add comment. Please try again.");
 
-      // Revert the optimistic update
       setPosts((prevPosts) => {
         return prevPosts.map((p) => {
           if (p.id === postId) {
@@ -633,10 +593,10 @@ const FishingApp = () => {
     { id: 2, title: "3위 봉어야" },
   ];
 
-  const handleCommentClick = () => {
+  const handleCommentClick = (post) => {
+    if (post.id.startsWith("dummy")) return;
     if (!currentUser) {
       toast.error("Please log in to view and add comments.");
-      // Implement redirection to login page here
     }
   };
 
@@ -656,7 +616,6 @@ const FishingApp = () => {
     <ErrorBoundary>
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-white">
         <div className="flex-1 overflow-y-auto pb-24">
-          {/* Search Bar */}
           <div className="px-4 my-4">
             <Link to="./filter-post">
               <div className="relative">
@@ -672,7 +631,6 @@ const FishingApp = () => {
             </Link>
           </div>
 
-          {/* Monthly Fish Section */}
           <div className="mb-6">
             <Card className="mx-4 shadow-xl my-1">
               <CardContent className="p-4">
@@ -694,7 +652,6 @@ const FishingApp = () => {
             </Card>
           </div>
 
-          {/* Content Area */}
           <div className="mb-5 flex flex-col gap-5 px-4">
             {(posts.length === 0 ? DUMMY_POSTS : posts).map((post, index) => {
               const user = users[post.user_id];
@@ -817,139 +774,141 @@ const FishingApp = () => {
                           </div>
                         ))}
                     </div>
-                    {!post.id.startsWith("dummy") && (
-                      <div className="mt-3 flex items-center gap-5 w-full">
-                        <div className="flex items-center gap-1">
-                          <PiHandsClapping
-                            className={`h-5 w-5 cursor-pointer ${
-                              post.user_has_liked
-                                ? "text-red-500 fill-red-500"
-                                : "text-gray-500"
-                            }`}
-                            onClick={() => handleLike(post.id)}
-                          />
-                          <span>{post.likes_count || 0}</span>
-                        </div>
-                        <div>
-                          {currentUser ? (
-                            <Drawer>
-                              <DrawerTrigger className="flex items-center gap-1">
-                                <LuMessageCircle className="h-5 w-5" />
-                                <span>{post.comments_count || 0}</span>
-                              </DrawerTrigger>
-                              <DrawerContent>
-                                <DrawerHeader className="border-b">
-                                  <DrawerTitle className="flex items-center gap-2 px-4">
-                                    <span className="text-base font-medium">
-                                      Comments
-                                    </span>
-                                    <span className="text-base text-gray-500">
-                                      {post.comments_count || 0}
-                                    </span>
-                                    <DrawerClose className="ml-auto">
-                                      <XIcon className="h-5 w-5" />
-                                    </DrawerClose>
-                                  </DrawerTitle>
-                                  <VisuallyHidden>
-                                    <DrawerDescription></DrawerDescription>
-                                  </VisuallyHidden>
-                                </DrawerHeader>
-                                <div className="flex flex-col h-[400px] overflow-y-auto">
-                                  {post.comments &&
-                                    post.comments.map((comment, index) => (
-                                      <div
-                                        key={index}
-                                        className="flex gap-3 p-4 hover:bg-gray-50"
-                                      >
-                                        <Avatar className="h-8 w-8">
-                                          <AvatarImage
-                                            src={
-                                              users[comment.user_id]?.avatar_url
-                                            }
-                                          />
-                                          <AvatarFallback>
-                                            {comment.user_name
-                                              ?.charAt(0)
-                                              .toUpperCase() || "U"}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium text-sm">
-                                              {comment.user_name}
-                                            </span>
-                                            {comment.user_id ===
-                                              post.user_id && (
-                                              <div className="relative group">
-                                                <PenSquare className="h-3.5 w-3.5 text-blue-500" />
-                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                                  Author
-                                                </div>
-                                              </div>
-                                            )}
-                                            <span className="text-xs text-gray-500">
-                                              {formatDistanceToNow(
-                                                new Date(comment.created_at),
-                                                { addSuffix: true }
-                                              )}
-                                            </span>
-                                          </div>
-                                          <p className="text-sm mt-0.5 text-gray-900">
-                                            {comment.content}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    ))}
-                                </div>
-                                <div className="p-4 border-t mt-auto">
-                                  <div className="flex gap-2 items-center">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarImage
-                                        src={users[currentUser?.id]?.avatar_url}
-                                      />
-                                      <AvatarFallback>
-                                        {users[currentUser?.id]?.name
-                                          ?.charAt(0)
-                                          .toUpperCase() || "U"}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <Input
-                                      placeholder="Add a comment..."
-                                      value={newComment}
-                                      onChange={(e) =>
-                                        setNewComment(e.target.value)
-                                      }
-                                      className="flex-1 h-11"
-                                    />
-                                    <Button
-                                      onClick={() => handleAddComment(post.id)}
-                                      className="bg-green-500 text-white hover:bg-green-600 h-11 w-20"
-                                    >
-                                      Post
-                                    </Button>
-                                  </div>
-                                </div>
-                              </DrawerContent>
-                            </Drawer>
-                          ) : (
-                            <button
-                              onClick={handleCommentClick}
-                              className="flex items-center gap-1"
-                            >
+                    <div className="mt-3 flex items-center gap-5 w-full">
+                      <div className="flex items-center gap-1">
+                        <PiHandsClapping
+                          className={`h-5 w-5 cursor-pointer ${
+                            post.user_has_liked
+                              ? "text-red-500 fill-red-500"
+                              : "text-gray-500"
+                          }`}
+                          onClick={() => handleLike(post.id)}
+                        />
+                        <span>{post.likes_count || 0}</span>
+                      </div>
+                      <div>
+                        {currentUser ? (
+                          <Drawer>
+                            <DrawerTrigger className="flex items-center gap-1">
                               <LuMessageCircle className="h-5 w-5" />
                               <span>{post.comments_count || 0}</span>
-                            </button>
-                          )}
-                        </div>
+                            </DrawerTrigger>
+                            <DrawerContent>
+                              <DrawerHeader className="border-b">
+                                <DrawerTitle className="flex items-center gap-2 px-4">
+                                  <span className="text-base font-medium">
+                                    Comments
+                                  </span>
+                                  <span className="text-base text-gray-500">
+                                    {post.comments_count || 0}
+                                  </span>
+                                  <DrawerClose className="ml-auto">
+                                    <XIcon className="h-5 w-5" />
+                                  </DrawerClose>
+                                </DrawerTitle>
+                                <VisuallyHidden>
+                                  <DrawerDescription></DrawerDescription>
+                                </VisuallyHidden>
+                              </DrawerHeader>
+                              <div className="flex flex-col h-[400px] overflow-y-auto">
+                                {post.comments &&
+                                  post.comments.map((comment, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex gap-3 p-4 hover:bg-gray-50"
+                                    >
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarImage
+                                          src={
+                                            users[comment.user_id]?.avatar_url
+                                          }
+                                        />
+                                        <AvatarFallback>
+                                          {comment.user_name
+                                            ?.charAt(0)
+                                            .toUpperCase() || "U"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium text-sm">
+                                            {comment.user_name}
+                                          </span>
+                                          {comment.user_id === post.user_id && (
+                                            <div className="relative group">
+                                              <PenSquare className="h-3.5 w-3.5 text-blue-500" />
+                                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                Author
+                                              </div>
+                                            </div>
+                                          )}
+                                          <span className="text-xs text-gray-500">
+                                            {formatDistanceToNow(
+                                              new Date(comment.created_at),
+                                              { addSuffix: true }
+                                            )}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm mt-0.5 text-gray-900">
+                                          {comment.content}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="p-4 border-t mt-auto">
+                                <div className="flex gap-2 items-center">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      src={users[currentUser?.id]?.avatar_url}
+                                    />
+                                    <AvatarFallback>
+                                      {users[currentUser?.id]?.name
+                                        ?.charAt(0)
+                                        .toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <Input
+                                    placeholder={
+                                      post.id.startsWith("dummy")
+                                        ? "This is a demo comment input - posting is disabled"
+                                        : "Add a comment..."
+                                    }
+                                    value={newComment}
+                                    onChange={(e) =>
+                                      setNewComment(e.target.value)
+                                    }
+                                    className="flex-1 h-11"
+                                    disabled={post.id.startsWith("dummy")}
+                                  />
+                                  <Button
+                                    onClick={() => handleAddComment(post.id)}
+                                    className="bg-green-500 text-white hover:bg-green-600 h-11 w-20"
+                                    disabled={post.id.startsWith("dummy")}
+                                  >
+                                    Post
+                                  </Button>
+                                </div>
+                              </div>
+                            </DrawerContent>
+                          </Drawer>
+                        ) : (
+                          <button
+                            onClick={() => handleCommentClick(post)}
+                            className="flex items-center gap-1"
+                          >
+                            <LuMessageCircle className="h-5 w-5" />
+                            <span>{post.comments_count || 0}</span>
+                          </button>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </CardFooter>
                 </Card>
               );
             })}
           </div>
 
-          {/* Floating Action Button */}
           <Link
             to="./create-post"
             className="fixed bottom-[102px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50"
