@@ -8,12 +8,6 @@ const CACHE_KEY = "kakaoMapLoaded";
 const CACHE_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const NEARBY_POSTS_RADIUS = 20; // in kilometers
 
-// South Korea bounds
-const SOUTH_KOREA_BOUNDS = {
-  sw: { lat: 33.0041, lng: 124.5986 },
-  ne: { lat: 38.6687, lng: 131.884 },
-};
-
 const initIndexedDB = async () => {
   return openDB("KakaoMapsCache", 1, {
     upgrade(db) {
@@ -74,12 +68,12 @@ export default function MapView() {
   const [nearbyPosts, setNearbyPosts] = useState([]);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessageText, setSuccessMessageText] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const tabs = ["1주전", "2주전", "3주전", "한달전"];
 
   useEffect(() => {
     const loadKakaoMaps = async () => {
-      console.log("Starting to load Kakao Maps");
       const isLoaded = await getCachedData();
       if (isLoaded && window.kakao && window.kakao.maps) {
         console.log("Kakao Maps loaded from cache");
@@ -112,88 +106,64 @@ export default function MapView() {
   }, []);
 
   const fetchPublicPosts = async () => {
-    console.log("Starting to fetch public posts");
-    try {
-      const { data, error } = await supabase
-        .from("posts")
-        .select(
-          `
-          id,
-          description,
-          created_at,
-          image_urls,
-          visibility,
-          locations (
-            latitude,
-            longitude
-          )
+    console.log("Fetching public posts...");
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
         `
+        id,
+        description,
+        created_at,
+        image_urls,
+        visibility,
+        locations (
+          latitude,
+          longitude
         )
-        .eq("visibility", "public");
+      `
+      )
+      .eq("visibility", "public");
 
-      if (error) {
-        throw error;
-      }
-
-      console.log("Fetched public posts:", data);
-      console.log("Number of public posts:", data.length);
-      if (data.length > 0) {
-        console.log("First post:", data[0]);
-      }
-      setPublicPosts(data);
-    } catch (error) {
+    if (error) {
       console.error("Error fetching public posts:", error);
-      setPublicPosts([]);
+    } else {
+      console.log("Fetched public posts:", data);
+      setPublicPosts(data);
     }
   };
 
   useEffect(() => {
     fetchPublicPosts();
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
-    console.log("Map initialization effect triggered");
-    console.log("kakaoMapsLoaded:", kakaoMapsLoaded);
-    console.log("map:", map);
-    console.log("window.kakao:", window.kakao);
-    console.log("publicPosts:", publicPosts);
-    console.log("Number of public posts:", publicPosts.length);
-
-    if (kakaoMapsLoaded && !map && window.kakao && window.kakao.maps) {
-      console.log("Conditions met for map initialization");
-      const container = document.getElementById("map");
-      console.log("Map container:", container);
-
-      const options = {
-        center: new window.kakao.maps.LatLng(
-          (SOUTH_KOREA_BOUNDS.sw.lat + SOUTH_KOREA_BOUNDS.ne.lat) / 2,
-          (SOUTH_KOREA_BOUNDS.sw.lng + SOUTH_KOREA_BOUNDS.ne.lng) / 2
-        ),
-        level: 13, // Set the zoom level to 13
-      };
-
-      const newMap = new window.kakao.maps.Map(container, options);
-
-      const bounds = new window.kakao.maps.LatLngBounds(
-        new window.kakao.maps.LatLng(
-          SOUTH_KOREA_BOUNDS.sw.lat,
-          SOUTH_KOREA_BOUNDS.sw.lng
-        ),
-        new window.kakao.maps.LatLng(
-          SOUTH_KOREA_BOUNDS.ne.lat,
-          SOUTH_KOREA_BOUNDS.ne.lng
-        )
+    if (kakaoMapsLoaded && window.kakao && window.kakao.maps) {
+      console.log(
+        "Initializing or updating map with public posts:",
+        publicPosts
       );
 
-      // newMap.setBounds(bounds);
+      const container = document.getElementById("map");
+      const options = {
+        center: new window.kakao.maps.LatLng(36.5, 127.5),
+        level: 13,
+      };
 
-      newMap.setMinLevel(3);
-      newMap.setMaxLevel(13);
+      let newMap;
+      if (!map) {
+        newMap = new window.kakao.maps.Map(container, options);
+        newMap.setMinLevel(3);
+        newMap.setMaxLevel(14);
+        setMap(newMap);
+      } else {
+        newMap = map;
+      }
 
-      setMap(newMap);
+      // Clear existing markers
+      newMap.removeOverlayMapTypeId(window.kakao.maps.MapTypeId.TRAFFIC);
 
       if (publicPosts.length > 0) {
-        const postBounds = new window.kakao.maps.LatLngBounds();
+        const bounds = new window.kakao.maps.LatLngBounds();
 
         publicPosts.forEach((post) => {
           if (
@@ -207,36 +177,19 @@ export default function MapView() {
             );
             const marker = new window.kakao.maps.Marker({ position });
 
-            const customOverlay = new window.kakao.maps.CustomOverlay({
-              position: position,
-              content: `<div class="custom-overlay">${post.description}</div>`,
-            });
-
             marker.setMap(newMap);
-            customOverlay.setMap(newMap);
 
-            postBounds.extend(position);
+            bounds.extend(position);
           }
         });
 
-        // If posts are within South Korea, fit to post bounds
-        if (bounds.contain(postBounds)) {
-          newMap.setBounds(postBounds);
-        } else {
-          // Otherwise, fit to South Korea bounds
-          newMap.setBounds(bounds);
-        }
-      } else {
-        console.log("No posts available, using South Korea bounds");
         newMap.setBounds(bounds);
+      } else {
+        const defaultPosition = new window.kakao.maps.LatLng(36.5, 127.5);
+        newMap.setCenter(defaultPosition);
       }
 
-      window.kakao.maps.event.addListener(newMap, "zoom_changed", function () {
-        const currentLevel = newMap.getLevel();
-        console.log("Current zoom level:", currentLevel);
-      });
-    } else {
-      console.log("Conditions not met for map initialization");
+      newMap.setLevel(13);
     }
   }, [kakaoMapsLoaded, map, publicPosts]);
 
@@ -398,7 +351,6 @@ export default function MapView() {
     if (isMobile) {
       savedToGallery = await saveImageToGallery(file);
     } else {
-      // For desktop, create a download link
       const url = URL.createObjectURL(file);
       const a = document.createElement("a");
       a.href = url;
@@ -418,7 +370,7 @@ export default function MapView() {
       if (user) {
         const { data, error } = await supabase.from("user_gallery").insert({
           user_id: user.id,
-          image_url: "local://captured_image.jpg", // This is a placeholder, as we don't have an actual URL
+          image_url: "local://captured_image.jpg",
         });
 
         if (error) {
@@ -466,9 +418,7 @@ export default function MapView() {
     } else {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices
-          .getUserMedia({
-            video: true,
-          })
+          .getUserMedia({ video: true })
           .then((stream) => {
             const video = document.createElement("video");
             video.srcObject = stream;
@@ -502,7 +452,6 @@ export default function MapView() {
                 console.log("Image captured on desktop:", file);
                 handleImageCapture(file);
 
-                // Clean up
                 stream.getTracks().forEach((track) => track.stop());
                 document.body.removeChild(video);
                 document.body.removeChild(captureButton);
@@ -511,7 +460,6 @@ export default function MapView() {
           })
           .catch((error) => {
             console.error("Error accessing camera:", error);
-            // Fallback to file input if camera access fails
             const input = document.createElement("input");
             input.type = "file";
             input.accept = "image/*";
@@ -527,7 +475,6 @@ export default function MapView() {
           });
       } else {
         console.error("getUserMedia is not supported in this browser");
-        // Fallback to regular file input
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
@@ -544,10 +491,12 @@ export default function MapView() {
     }
   };
 
+  // const handleRefresh = () => {
+  //   setRefreshTrigger((prev) => prev + 1);
+  // };
+
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {console.log("Rendering MapView component")}
-      {/* Tabs */}
+    <div className="h-screen flex flex-col bg-white">
       <div className="flex p-2 gap-2 bg-white relative z-10">
         {tabs.map((tab, index) => (
           <button
@@ -564,15 +513,14 @@ export default function MapView() {
         ))}
       </div>
 
-      {/* Map Container */}
       <div
         className="relative flex-1 z-0"
         style={{
           height: "calc(100vh + 100px)",
-          marginTop: "-40px",
+          marginTop: "-100px",
+          marginLeft: "-25px",
         }}
       >
-        {console.log("Rendering map container")}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-20">
             <Loader2Icon className="h-10 w-10 animate-spin text-primary" />
@@ -580,8 +528,7 @@ export default function MapView() {
         )}
         <div id="map" className="absolute inset-0" />
 
-        {/* Satellite View Toggle and Locate */}
-        <div className="absolute top-16 gap-2 flex flex-col right-4">
+        <div className="absolute top-28 gap-2 flex flex-col right-4">
           <button
             onClick={handleLocate}
             className="bg-white p-3 rounded-full shadow-md z-10 flex items-center space-x-2 text-sm font-medium hover:bg-gray-100 transition-colors"
@@ -595,9 +542,27 @@ export default function MapView() {
           >
             <GlobeIcon className="w-4 h-4" />
           </button>
+          {/* <button
+            onClick={handleRefresh}
+            className="bg-white p-3 rounded-full shadow-md z-10 flex items-center space-x-2 text-sm font-medium hover:bg-gray-100 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button> */}
         </div>
 
-        {/* Camera Button */}
         <button
           onClick={handleOpenCamera}
           className="fixed bottom-[90px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50"
@@ -619,7 +584,6 @@ export default function MapView() {
           </svg>
         </button>
 
-        {/* Success Message */}
         {showSuccessMessage && (
           <div className="fixed bottom-24 left-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-md">
             {successMessageText}
@@ -627,7 +591,6 @@ export default function MapView() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-4 bg-white border-t z-50">
         <button className="flex flex-col items-center gap-1">
           <svg

@@ -185,10 +185,10 @@ const Profile = () => {
       {/* Menu List */}
       <div className="flex-1 mt-6 overflow-y-auto pb-24">
         <Link to="/inbox" className="block px-4 py-3 mb-1">
-          <span className="text-sm">내 받은편지함</span>
+          <span className="text-sm">내편지함</span>
         </Link>
         <Link to="/shopping-cart" className="block px-4 py-3 mb-1">
-          <span className="text-sm">내 장바구니</span>
+          <span className="text-sm">장바구니</span>
         </Link>
         <Link to="/orders" className="block px-4 py-3 mb-1">
           <span className="text-sm">주문내역 / 배송정보</span>
