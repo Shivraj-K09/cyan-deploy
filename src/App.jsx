@@ -10,8 +10,11 @@ import CredentialsResult from "./pages/find-credent/CredentialsResult";
 import FindCredentials from "./pages/find-credent/FindCredentials";
 import FindPassword from "./pages/find-password/FindPassword";
 import ResetPassword from "./pages/find-password/ResetPassword";
+import CreatePost from "./pages/fish-catch-record/CreatePost";
+import FilterPost from "./pages/fish-catch-record/FilterPost";
 import FishCatchRecord from "./pages/fish-catch-record/FishCatchRecord";
 import MainPage from "./pages/main-page/MainPage";
+import MyMap from "./pages/my-map/MyMap";
 import Payment from "./pages/payment/Payment";
 import ProductReviews from "./pages/ProductReviews/ProductReviews";
 import ProductReviewWrite from "./pages/ProductReviews/ProductReviewWrite";
@@ -36,9 +39,6 @@ import ProductReview from "./pages/shopping/ProductReview";
 import ShoppingCart from "./pages/shopping/ShoppingCart";
 import ShoppingEcommerce from "./pages/shopping/ShoppingEcommerce";
 import TopNav from "./pages/TopNav";
-import FilterPost from "./pages/fish-catch-record/FilterPost";
-import CreatePost from "./pages/fish-catch-record/CreatePost";
-import MyMap from "./pages/my-map/MyMap";
 
 function App() {
   const location = useLocation();

@@ -1,8 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { openDB } from "idb";
 import { GlobeIcon, Loader2Icon, LocateIcon } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
+import CameraButton from "../../components/cameraButton";
+
+const isLocationInKorea = (latitude, longitude) => {
+  const koreanBounds = {
+    north: 38.6,
+    south: 33.0,
+    east: 131.9,
+    west: 124.5,
+  };
+
+  return (
+    latitude >= koreanBounds.south &&
+    latitude <= koreanBounds.north &&
+    longitude >= koreanBounds.west &&
+    longitude <= koreanBounds.east
+  );
+};
+
+const createCustomMarkerSVG = (fill) => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "40");
+  svg.setAttribute("height", "40");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", fill);
+  svg.setAttribute("stroke", "#fff");
+  svg.setAttribute("stroke-width", "1");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute(
+    "d",
+    "M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+  );
+
+  const circle = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle"
+  );
+  circle.setAttribute("cx", "12");
+  circle.setAttribute("cy", "10");
+  circle.setAttribute("r", "3");
+
+  svg.appendChild(path);
+  svg.appendChild(circle);
+
+  return svg;
+};
 
 const CACHE_KEY = "kakaoMapLoaded";
 const CACHE_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -69,8 +117,28 @@ export default function MapView() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessageText, setSuccessMessageText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [persistedLocation, setPersistedLocation] = useState(null);
 
   const tabs = ["1주전", "2주전", "3주전", "한달전"];
+
+  const saveLocationToLocalStorage = useCallback((location) => {
+    localStorage.setItem("userLocation", JSON.stringify(location));
+  }, []);
+
+  const getLocationFromLocalStorage = useCallback(() => {
+    const storedLocation = localStorage.getItem("userLocation");
+    return storedLocation ? JSON.parse(storedLocation) : null;
+  }, []);
+
+  const updateMapWithPersistedLocation = useCallback(
+    (location) => {
+      if (location && map) {
+        const { latitude, longitude } = location;
+        updateMapWithLocation(latitude, longitude);
+      }
+    },
+    [map]
+  );
 
   useEffect(() => {
     const loadKakaoMaps = async () => {
@@ -194,8 +262,39 @@ export default function MapView() {
   }, [kakaoMapsLoaded, map, publicPosts]);
 
   const handleLocate = () => {
-    console.log("Locate button clicked. Using test location in Korea.");
-    useTestLocation();
+    return new Promise((resolve, reject) => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log("User's actual location:", { latitude, longitude });
+
+            if (isLocationInKorea(latitude, longitude)) {
+              console.log("User is in Korea. Using actual location.");
+              const location = { latitude, longitude };
+              setUserLocation(location);
+              setPersistedLocation(location);
+              saveLocationToLocalStorage(location);
+              updateMapWithLocation(latitude, longitude);
+              resolve(location);
+            } else {
+              console.log(
+                "User is not in Korea. Using test location in Seoul."
+              );
+              resolve(useTestLocation());
+            }
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            resolve(useTestLocation());
+          },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+      } else {
+        console.log("Geolocation is not supported by this browser.");
+        resolve(useTestLocation());
+      }
+    });
   };
 
   const useTestLocation = () => {
@@ -205,35 +304,12 @@ export default function MapView() {
       latitude: testLatitude,
       longitude: testLongitude,
     });
-    setUserLocation({ latitude: testLatitude, longitude: testLongitude });
-    if (map) {
-      const newCenter = new window.kakao.maps.LatLng(
-        testLatitude,
-        testLongitude
-      );
-      map.setCenter(newCenter);
-      map.setLevel(3);
-
-      if (locationMarker) {
-        locationMarker.setMap(null);
-      }
-
-      const newMarker = new window.kakao.maps.Marker({
-        position: newCenter,
-        map: map,
-      });
-
-      setLocationMarker(newMarker);
-
-      const nearby = findNearbyPosts(
-        testLatitude,
-        testLongitude,
-        NEARBY_POSTS_RADIUS
-      );
-      setNearbyPosts(nearby);
-
-      updateMapWithNearbyPosts(nearby, map);
-    }
+    const location = { latitude: testLatitude, longitude: testLongitude };
+    setUserLocation(location);
+    setPersistedLocation(location);
+    saveLocationToLocalStorage(location);
+    updateMapWithLocation(testLatitude, testLongitude);
+    return location;
   };
 
   const findNearbyPosts = (
@@ -273,6 +349,95 @@ export default function MapView() {
     });
   };
 
+  const updateMapWithLocation = useCallback(
+    (latitude, longitude) => {
+      if (map) {
+        const newCenter = new window.kakao.maps.LatLng(latitude, longitude);
+
+        // Remove existing location marker if it exists
+        if (locationMarker) {
+          locationMarker.setMap(null);
+        }
+
+        // Create new marker
+        const markerContent = document.createElement("div");
+        markerContent.style.position = "absolute";
+        markerContent.style.bottom = "0";
+        markerContent.style.left = "-20px";
+
+        const svg = createCustomMarkerSVG("#32329C"); // Blue color for user location
+        markerContent.appendChild(svg);
+
+        const newMarker = new window.kakao.maps.CustomOverlay({
+          position: newCenter,
+          content: markerContent,
+          map: map,
+          yAnchor: 1,
+        });
+
+        setLocationMarker(newMarker);
+
+        // Set the map center and zoom level
+        map.setCenter(newCenter);
+        map.setLevel(3); // You can adjust this value to set the initial zoom level
+
+        // Create a LatLngBounds object and extend it with the marker position
+        const bounds = new window.kakao.maps.LatLngBounds();
+        bounds.extend(newCenter);
+
+        // Find nearby posts
+        const nearby = findNearbyPosts(
+          latitude,
+          longitude,
+          NEARBY_POSTS_RADIUS
+        );
+        setNearbyPosts(nearby);
+
+        // Add nearby posts to the map and extend bounds
+        nearby.forEach((post) => {
+          if (
+            post.locations &&
+            post.locations.latitude &&
+            post.locations.longitude
+          ) {
+            const postPosition = new window.kakao.maps.LatLng(
+              post.locations.latitude,
+              post.locations.longitude
+            );
+            bounds.extend(postPosition);
+
+            const postMarkerContent = document.createElement("div");
+            postMarkerContent.style.position = "absolute";
+            postMarkerContent.style.bottom = "0";
+            postMarkerContent.style.left = "-20px";
+
+            const postSvg = createCustomMarkerSVG("#128100"); // Green color for posts
+            postMarkerContent.appendChild(postSvg);
+
+            const postMarker = new window.kakao.maps.CustomOverlay({
+              position: postPosition,
+              content: postMarkerContent,
+              map: map,
+              yAnchor: 1,
+            });
+
+            window.kakao.maps.event.addListener(
+              postMarker,
+              "click",
+              function () {
+                console.log("Clicked post:", post);
+              }
+            );
+          }
+        });
+
+        // Set the map bounds to fit all markers
+        map.setBounds(bounds, 50); // 50 is padding in pixels
+      }
+    },
+    [map, locationMarker, publicPosts]
+  );
+
   const updateMapWithNearbyPosts = (posts, map) => {
     map.removeOverlayMapTypeId(window.kakao.maps.MapTypeId.TRAFFIC);
 
@@ -281,9 +446,20 @@ export default function MapView() {
         post.locations.latitude,
         post.locations.longitude
       );
-      const marker = new window.kakao.maps.Marker({
+
+      const markerContent = document.createElement("div");
+      markerContent.style.position = "absolute";
+      markerContent.style.bottom = "0";
+      markerContent.style.left = "-20px";
+
+      const svg = createCustomMarkerSVG("#128100"); // Green color for posts
+      markerContent.appendChild(svg);
+
+      const marker = new window.kakao.maps.CustomOverlay({
         position: position,
+        content: markerContent,
         map: map,
+        yAnchor: 1,
       });
 
       window.kakao.maps.event.addListener(marker, "click", function () {
@@ -338,8 +514,8 @@ export default function MapView() {
     }
   };
 
-  const handleImageCapture = async (file) => {
-    console.log("Processing captured image:", file);
+  const handleImageCapture = useCallback(async (watermarkedBlob) => {
+    console.log("Processing captured image");
 
     let savedToGallery = false;
 
@@ -349,16 +525,9 @@ export default function MapView() {
       );
 
     if (isMobile) {
-      savedToGallery = await saveImageToGallery(file);
+      savedToGallery = await saveImageToGallery(watermarkedBlob);
     } else {
-      const url = URL.createObjectURL(file);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "captured_image.jpg";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // For desktop, the image is already downloaded in the CameraButton component
       savedToGallery = true;
     }
 
@@ -370,130 +539,49 @@ export default function MapView() {
       if (user) {
         const { data, error } = await supabase.from("user_gallery").insert({
           user_id: user.id,
-          image_url: "local://captured_image.jpg",
+          image_url: "local://captured_image_with_watermark.jpg",
         });
 
         if (error) {
           console.error("Error adding image to gallery:", error);
+          setSuccessMessageText(
+            "Failed to save image to gallery. Please try again."
+          );
         } else {
           console.log("Image added to user's gallery:", data);
+          setSuccessMessageText(
+            isMobile
+              ? "Image saved to your gallery successfully!"
+              : "Image downloaded successfully!"
+          );
         }
       } else {
         console.error("No user logged in");
+        setSuccessMessageText("Failed to save image. User not logged in.");
       }
-
-      setSuccessMessageText(
-        isMobile
-          ? "Image saved to your gallery successfully!"
-          : "Image downloaded successfully!"
-      );
     } else {
       setSuccessMessageText("Failed to save image. Please try again.");
     }
 
     setShowSuccessMessage(true);
     setTimeout(() => setShowSuccessMessage(false), 3000);
-  };
+  }, []);
 
-  const handleOpenCamera = () => {
-    const isMobile =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-
-    if (isMobile) {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.capture = "environment";
-      input.click();
-
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          console.log("Image captured on mobile:", file);
-          handleImageCapture(file);
-        }
-      };
-    } else {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({ video: true })
-          .then((stream) => {
-            const video = document.createElement("video");
-            video.srcObject = stream;
-            video.autoplay = true;
-            video.style.position = "fixed";
-            video.style.top = "0";
-            video.style.left = "0";
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.style.zIndex = "1000";
-            document.body.appendChild(video);
-
-            const captureButton = document.createElement("button");
-            captureButton.textContent = "Capture";
-            captureButton.style.position = "fixed";
-            captureButton.style.bottom = "20px";
-            captureButton.style.left = "50%";
-            captureButton.style.transform = "translateX(-50%)";
-            captureButton.style.zIndex = "1001";
-            document.body.appendChild(captureButton);
-
-            captureButton.onclick = () => {
-              const canvas = document.createElement("canvas");
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              canvas.getContext("2d").drawImage(video, 0, 0);
-              canvas.toBlob((blob) => {
-                const file = new File([blob], "captured_image.jpg", {
-                  type: "image/jpeg",
-                });
-                console.log("Image captured on desktop:", file);
-                handleImageCapture(file);
-
-                stream.getTracks().forEach((track) => track.stop());
-                document.body.removeChild(video);
-                document.body.removeChild(captureButton);
-              }, "image/jpeg");
-            };
-          })
-          .catch((error) => {
-            console.error("Error accessing camera:", error);
-            const input = document.createElement("input");
-            input.type = "file";
-            input.accept = "image/*";
-            input.click();
-
-            input.onchange = (e) => {
-              const file = e.target.files[0];
-              if (file) {
-                console.log("Image selected:", file);
-                handleImageCapture(file);
-              }
-            };
-          });
-      } else {
-        console.error("getUserMedia is not supported in this browser");
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.click();
-
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            console.log("Image selected:", file);
-            handleImageCapture(file);
-          }
-        };
-      }
+  useEffect(() => {
+    const storedLocation = getLocationFromLocalStorage();
+    if (storedLocation) {
+      setPersistedLocation(storedLocation);
+      setUserLocation(storedLocation);
     }
-  };
+  }, [getLocationFromLocalStorage]);
 
-  // const handleRefresh = () => {
-  //   setRefreshTrigger((prev) => prev + 1);
-  // };
+  useEffect(() => {
+    updateMapWithPersistedLocation(persistedLocation);
+  }, [persistedLocation, updateMapWithPersistedLocation]);
+
+  useEffect(() => {
+    handleLocate();
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -529,10 +617,7 @@ export default function MapView() {
         <div id="map" className="absolute inset-0" />
 
         <div className="absolute top-28 gap-2 flex flex-col right-4">
-          <button
-            onClick={handleLocate}
-            className="bg-white p-3 rounded-full shadow-md z-10 flex items-center space-x-2 text-sm font-medium hover:bg-gray-100 transition-colors"
-          >
+          <button className="bg-white p-3 rounded-full shadow-md z-10 flex items-center space-x-2 text-sm font-medium hover:bg-gray-100 transition-colors">
             <LocateIcon className="w-4 h-4" />
           </button>
 
@@ -542,47 +627,14 @@ export default function MapView() {
           >
             <GlobeIcon className="w-4 h-4" />
           </button>
-          {/* <button
-            onClick={handleRefresh}
-            className="bg-white p-3 rounded-full shadow-md z-10 flex items-center space-x-2 text-sm font-medium hover:bg-gray-100 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </button> */}
         </div>
 
-        <button
-          onClick={handleOpenCamera}
-          className="fixed bottom-[90px] right-6 h-20 w-20 rounded-full bg-indigo-600 shadow-lg hover:bg-indigo-700 flex items-center justify-center z-50"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8"
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-            <circle cx="12" cy="13" r="4"></circle>
-          </svg>
-        </button>
+        {userLocation && (
+          <CameraButton
+            userLocation={userLocation}
+            onImageCapture={handleImageCapture}
+          />
+        )}
 
         {showSuccessMessage && (
           <div className="fixed bottom-24 left-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-md">
