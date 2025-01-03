@@ -111,7 +111,7 @@ const Records = () => {
             <p className="text-sm text-gray-500 mb-4">
               첫 번째 기록을 작성해 보세요!
             </p>
-            <Link to="/create-post">
+            <Link to="/fish-catch-record/create-post">
               <Button className="bg-green-500 hover:bg-green-600 text-white">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 기록 작성하기

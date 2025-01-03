@@ -118,6 +118,7 @@ export default function MapView() {
   const [successMessageText, setSuccessMessageText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [persistedLocation, setPersistedLocation] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added authentication state
 
   const tabs = ["1주전", "2주전", "3주전", "한달전"];
 
@@ -583,23 +584,40 @@ export default function MapView() {
     handleLocate();
   }, []);
 
+  useEffect(() => {
+    // Added authentication check effect
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, []);
+
   return (
     <div className="h-screen flex flex-col bg-white">
       <div className="flex p-2 gap-2 bg-white relative z-10">
         {tabs.map((tab, index) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(index)}
+            onClick={() => isAuthenticated && setActiveTab(index)} // Added authentication check
             className={`flex-1 py-2 rounded-xl text-lg ${
               activeTab === index
                 ? "border text-[#32329C] font-bold border-[#32329C]"
                 : "bg-gray-100 text-gray-600 border-[1px] border-gray-400"
-            }`}
+            } ${!isAuthenticated && "opacity-50 cursor-not-allowed"}`} // Added styling for disabled buttons
+            disabled={!isAuthenticated} // Added disabled attribute
           >
             {tab}
           </button>
         ))}
       </div>
+      {!isAuthenticated && ( // Added message for non-authenticated users
+        <div className="text-center text-red-500 mt-2">
+          Please log in to use the tabs.
+        </div>
+      )}
 
       <div
         className="relative flex-1 z-0"

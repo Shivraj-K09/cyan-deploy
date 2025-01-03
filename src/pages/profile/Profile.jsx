@@ -8,6 +8,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import {
   FreeMemberIcon,
+  GoldMemberIcon,
   PaidMemberIcon,
   SupporterMemberIcon,
 } from "../../components/icons/Icons";
@@ -21,6 +22,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
+  const [points, setPoints] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,6 +38,7 @@ const Profile = () => {
         setMembershipLevel(parsedData.membership_level);
         setPostCount(parsedData.post_count || 0);
         setCommentCount(parsedData.comment_count || 0);
+        setPoints(parsedData.points || 0);
         setLoading(false);
       }
 
@@ -47,7 +50,7 @@ const Profile = () => {
         setUser(user);
         const { data, error } = await supabase
           .from("users")
-          .select("avatar_url, name, membership_level")
+          .select("avatar_url, name, membership_level, points")
           .eq("id", user.id)
           .single();
 
@@ -55,6 +58,7 @@ const Profile = () => {
           setAvatarUrl(data.avatar_url);
           setUserName(data.name);
           setMembershipLevel(data.membership_level);
+          setPoints(data.points || 0);
 
           // Fetch post count
           const { count, error: postError } = await supabase
@@ -84,6 +88,7 @@ const Profile = () => {
               ...data,
               post_count: count,
               comment_count: commentCount,
+              points: data.points || 0,
             })
           );
         }
@@ -100,6 +105,8 @@ const Profile = () => {
         return <FreeMemberIcon className="w-6 h-6 ml-1" />;
       case "Paid":
         return <PaidMemberIcon className="w-6 h-6 ml-1" />;
+      case "Gold":
+        return <GoldMemberIcon className="w-6 h-6 ml-1" />;
       case "Supporter":
         return <SupporterMemberIcon className="w-6 h-6 ml-1" />;
       default:
@@ -161,7 +168,9 @@ const Profile = () => {
       {/* Stats */}
       <div className="mx-4 p-4 pt-5 border rounded-xl flex justify-between items-center">
         <Link to="/mobile-points" className="text-center flex-1">
-          <div className="text-base font-medium">24,000원</div>
+          <div className="text-base font-medium">
+            {points.toLocaleString()}원
+          </div>
           <div className="text-xs text-muted-foreground">보유 포인트</div>
         </Link>
         <div className="w-px h-8 bg-gray-200" />

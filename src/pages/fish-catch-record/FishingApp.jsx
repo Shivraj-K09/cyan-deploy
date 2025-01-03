@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast, Toaster } from "sonner";
 import { supabase } from "../../lib/supabaseClient";
+// import { useAuth } from "../../lib/auth";
 import {
   Search,
   YoutubeIcon,
@@ -111,6 +112,7 @@ const FishingApp = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentUserData, setCurrentUserData] = useState(null);
   const [newComment, setNewComment] = useState("");
+  // const { user } = useAuth();
 
   useEffect(() => {
     fetchCurrentUser();
@@ -134,6 +136,10 @@ const FishingApp = () => {
       if (unsubscribe) unsubscribe();
     };
   }, [currentUser, currentUserData]);
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
 
   const fetchCurrentUser = async () => {
     try {
@@ -622,13 +628,23 @@ const FishingApp = () => {
                 <Input
                   type="text"
                   placeholder="조황기록 검색"
-                  className="w-full px-4 py-2 border border-[#128100] rounded-xl pr-10"
+                  className={`w-full px-4 py-2 border border-[#128100] rounded-xl pr-10 ${
+                    !currentUser ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) =>
+                    currentUser && setSearchQuery(e.target.value)
+                  }
+                  disabled={!currentUser}
                 />
                 <Search className="absolute right-3 top-2.5 text-[#128100] w-5 h-5" />
               </div>
             </Link>
+            {!currentUser && (
+              <p className="text-sm text-red-500 mt-1">
+                Please log in to use the search feature.
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -724,11 +740,11 @@ const FishingApp = () => {
                     {post.image_urls &&
                       post.image_urls.length > 0 &&
                       (post.image_urls.length === 1 ? (
-                        <div className="w-full h-64 ">
+                        <div className="w-full h-full">
                           <img
                             src={post.image_urls[0]}
                             alt={`Post image`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full"
                           />
                         </div>
                       ) : (

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Skeleton } from "../components/ui/skeleton";
 import { Button } from "../components/ui/button";
@@ -8,10 +9,17 @@ import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
 import {
   FreeMemberIcon,
+  GoldMemberIcon,
   PaidMemberIcon,
   SupporterMemberIcon,
 } from "../components/icons/Icons";
-
+import {
+  setUser,
+  clearUser,
+  updatePoints,
+  updateLastPointsAwardDate,
+} from "../store/userSlice";
+import { checkAndAwardMonthlyPoints } from "../utils/pointSystem";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,16 +38,16 @@ const MembershipIcon = ({ membershipLevel }) => {
     return <FreeMemberIcon className="w-4 h-4 ml-1" />;
   if (membershipLevel === "Paid")
     return <PaidMemberIcon className="w-4 h-4 ml-1" />;
+  if (membershipLevel === "Gold")
+    return <GoldMemberIcon className="w-4 h-4 ml-1" />;
   if (membershipLevel === "Supporter")
     return <SupporterMemberIcon className="w-4 h-4 ml-1" />;
   return null;
 };
 
 const TopNav = () => {
-  const [user, setUser] = useState(null);
-  const [userName, setUserName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [membershipLevel, setMembershipLevel] = useState(null);
+  const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
@@ -52,23 +60,47 @@ const TopNav = () => {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        setUser(user);
         const { data, error } = await supabase
           .from("users")
-          .select("avatar_url, name, membership_level")
+          .select(
+            "avatar_url, name, membership_level, points, last_points_award_date"
+          )
           .eq("id", user.id)
           .single();
         if (data && !error) {
-          setAvatarUrl(data.avatar_url);
-          setUserName(data.name);
-          setMembershipLevel(data.membership_level);
+          console.log("User data before daily points check:", data);
+          dispatch(
+            setUser({
+              id: user.id,
+              name: data.name,
+              avatarUrl: data.avatar_url,
+              membershipLevel: data.membership_level,
+              points: data.points,
+              lastPointsAwardDate: data.last_points_award_date,
+            })
+          );
+          // Check and award daily points
+          await checkAndAwardMonthlyPoints(user.id);
+          // Fetch updated user data after awarding points
+          const { data: updatedData, error: updatedError } = await supabase
+            .from("users")
+            .select("points, last_points_award_date")
+            .eq("id", user.id)
+            .single();
+          if (updatedData && !updatedError) {
+            console.log("User data after daily points check:", updatedData);
+            dispatch(updatePoints(updatedData.points));
+            dispatch(
+              updateLastPointsAwardDate(updatedData.last_points_award_date)
+            );
+          }
         }
       }
       setIsLoading(false);
     };
 
     fetchUserData();
-  }, []);
+  }, [dispatch]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -78,20 +110,18 @@ const TopNav = () => {
         description: error.message,
       });
     } else {
-      setUser(null);
-      setUserName("");
-      setAvatarUrl(null);
-      setMembershipLevel(null);
+      dispatch(clearUser());
       toast.success("You have been logged out");
       navigate("/login");
     }
     setIsLoggingOut(false);
   };
 
-  // Add this check to prevent rendering on the profile page
   if (location.pathname === "/profile") {
     return null;
   }
+
+  const formattedPoints = new Intl.NumberFormat("ko-KR").format(user.points);
 
   return (
     <div className="p-4 border-b sticky top-0 z-50 bg-white">
@@ -101,16 +131,16 @@ const TopNav = () => {
             <Skeleton className="h-10 w-10 rounded-full" />
           ) : (
             <Avatar className="h-10 w-10">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} alt={userName} />
+              {user.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
               ) : (
                 <AvatarFallback>
                   <UserIcon className="h-6 w-6" />
                 </AvatarFallback>
               )}
-              {avatarUrl && (
+              {user.avatarUrl && (
                 <AvatarFallback>
-                  {userName.slice(0, 2).toUpperCase()}
+                  {user.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               )}
             </Avatar>
@@ -119,14 +149,16 @@ const TopNav = () => {
           <div>
             <div className="text-sm font-bold flex items-center">
               봉어잡자
-              <MembershipIcon membershipLevel={membershipLevel} />
+              <MembershipIcon membershipLevel={user.membershipLevel} />
             </div>
-            <div className="text-sm font-bold">내 포인트: 24,000P</div>
+            <div className="text-sm font-bold">
+              내 포인트: {formattedPoints} P
+            </div>
           </div>
         </div>
         {isLoading ? (
           <Skeleton className="h-10 w-24 rounded-xl" />
-        ) : user ? (
+        ) : user.id ? (
           <>
             <AlertDialog>
               <AlertDialogTrigger asChild>

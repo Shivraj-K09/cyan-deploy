@@ -1,7 +1,8 @@
 import { openDB } from "idb";
-import { Loader2Icon, MapIcon, SatelliteIcon, MapPin } from "lucide-react";
+import { Loader2Icon, MapIcon, SatelliteIcon } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { supabase } from "../../lib/supabaseClient";
 import { Switch } from "../../components/ui/switch";
 import ReactDOM from "react-dom/client";
@@ -15,6 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
+import {
+  checkAndAwardPointsForExistingPublicPosts,
+  awardPointsForPublicPost,
+  getUserMembershipLevel,
+} from "../../utils/pointSystem";
 
 const CACHE_KEY = "kakaoMapLoaded";
 const CACHE_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -72,7 +78,7 @@ export default function MyMap() {
   const [kakaoMapsLoaded, setKakaoMapsLoaded] = useState(false);
   const [isSatelliteView, setIsSatelliteView] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const user = useSelector((state) => state.user);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -84,18 +90,15 @@ export default function MyMap() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (!user) {
+      if (!user.id) {
         setShowLoginAlert(true);
       } else {
-        fetchUserPosts(user.id);
+        await fetchUserPosts(user.id);
+        await checkAndAwardPointsForExistingPublicPosts(user.id);
       }
     };
     checkUser();
-  }, []);
+  }, [user.id]);
 
   const fetchUserPosts = async (userId) => {
     const { data, error } = await supabase
@@ -106,6 +109,7 @@ export default function MyMap() {
         visibility,
         created_at,
         description,
+        points_awarded,
         locations (
           id,
           latitude,
@@ -154,13 +158,19 @@ export default function MyMap() {
       document.head.appendChild(script);
     };
 
-    if (user) {
+    if (user.id) {
       loadKakaoMaps();
     }
-  }, [user]);
+  }, [user.id]);
 
   useEffect(() => {
-    if (user && kakaoMapsLoaded && !map && window.kakao && window.kakao.maps) {
+    if (
+      user.id &&
+      kakaoMapsLoaded &&
+      !map &&
+      window.kakao &&
+      window.kakao.maps
+    ) {
       const container = document.getElementById("map");
       if (container) {
         const options = {
@@ -171,72 +181,102 @@ export default function MyMap() {
         setMap(newMap);
       }
     }
-  }, [kakaoMapsLoaded, map, user]);
+  }, [kakaoMapsLoaded, map, user.id]);
 
-  const toggleVisibility = useCallback(async (postId, currentVisibility) => {
-    console.log("toggleVisibility called", postId, currentVisibility);
-    const newVisibility = currentVisibility === "public" ? "private" : "public";
+  const toggleVisibility = useCallback(
+    async (postId, currentVisibility) => {
+      console.log("toggleVisibility called", postId, currentVisibility);
+      const newVisibility =
+        currentVisibility === "public" ? "private" : "public";
 
-    // Prevent the popover from closing
-    setIsPopoverOpen(true);
+      // Prevent the popover from closing
+      setIsPopoverOpen(true);
 
-    // Optimistic UI update
-    setUserPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, visibility: newVisibility } : post
-      )
-    );
+      // Find the current post
+      const currentPost = userPosts.find((post) => post.id === postId);
+      if (!currentPost) {
+        console.error("Post not found:", postId);
+        return;
+      }
 
-    // Update marker color
-    const overlay = customOverlaysRef.current.get(postId);
-    if (overlay) {
-      const markerContent = overlay.getContent();
-      const svg = markerContent.querySelector("svg");
-      svg.setAttribute(
-        "fill",
-        newVisibility === "public" ? "#128100" : "#FF0000"
-      );
-    }
-
-    // Update in the database
-    const { error } = await supabase
-      .from("posts")
-      .update({ visibility: newVisibility })
-      .eq("id", postId);
-
-    if (error) {
-      console.error("Error updating post visibility:", error);
-      // Revert optimistic update if there's an error
+      // Optimistic UI update
       setUserPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post.id === postId ? { ...post, visibility: currentVisibility } : post
+          post.id === postId ? { ...post, visibility: newVisibility } : post
         )
       );
-      // Revert marker color
+
+      // Update marker color
+      const overlay = customOverlaysRef.current.get(postId);
       if (overlay) {
         const markerContent = overlay.getContent();
         const svg = markerContent.querySelector("svg");
         svg.setAttribute(
           "fill",
-          currentVisibility === "public" ? "#128100" : "#FF0000"
+          newVisibility === "public" ? "#128100" : "#FF0000"
         );
       }
-    }
 
-    // Force re-render of the switch to update its state
-    const switchContainer = document.getElementById(`switch-${postId}`);
-    if (switchContainer) {
-      const root = ReactDOM.createRoot(switchContainer);
-      root.render(
-        <Switch
-          checked={newVisibility === "public"}
-          onCheckedChange={() => toggleVisibility(postId, newVisibility)}
-          className="data-[state=checked]:bg-[#128100]"
-        />
-      );
-    }
-    console.log("toggleVisibility completed", postId, newVisibility);
-  }, []);
+      // Update in the database
+      const { error } = await supabase
+        .from("posts")
+        .update({ visibility: newVisibility })
+        .eq("id", postId);
+
+      if (error) {
+        console.error("Error updating post visibility:", error);
+        // Revert optimistic update if there's an error
+        setUserPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? { ...post, visibility: currentVisibility }
+              : post
+          )
+        );
+        // Revert marker color
+        if (overlay) {
+          const markerContent = overlay.getContent();
+          const svg = markerContent.querySelector("svg");
+          svg.setAttribute(
+            "fill",
+            currentVisibility === "public" ? "#128100" : "#FF0000"
+          );
+        }
+      } else if (newVisibility === "public" && !currentPost.points_awarded) {
+        // Award points for making the post public
+        const membershipLevel = await getUserMembershipLevel(user.id);
+        await awardPointsForPublicPost(user.id, membershipLevel);
+
+        // Update points_awarded status
+        await supabase
+          .from("posts")
+          .update({ points_awarded: true })
+          .eq("id", postId);
+
+        // Update local state to reflect points_awarded change
+        setUserPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId ? { ...post, points_awarded: true } : post
+          )
+        );
+      }
+
+      // Force re-render of the switch to update its state
+      const switchContainer = document.getElementById(`switch-${postId}`);
+      if (switchContainer) {
+        const root = ReactDOM.createRoot(switchContainer);
+        root.render(
+          <Switch
+            checked={newVisibility === "public"}
+            onCheckedChange={() => toggleVisibility(postId, newVisibility)}
+            className="data-[state=checked]:bg-[#128100]"
+          />
+        );
+      }
+      console.log("toggleVisibility completed", postId, newVisibility);
+    },
+    [user.id, userPosts]
+  );
 
   const createPopupContent = useCallback(
     (post) => {
@@ -575,7 +615,7 @@ export default function MyMap() {
 
       return customOverlay;
     },
-    [map, toggleVisibility, createPopupContent]
+    [map, createPopupContent]
   );
 
   useEffect(() => {
