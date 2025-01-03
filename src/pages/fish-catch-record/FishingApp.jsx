@@ -740,11 +740,11 @@ const FishingApp = () => {
                     {post.image_urls &&
                       post.image_urls.length > 0 &&
                       (post.image_urls.length === 1 ? (
-                        <div className="w-full h-full">
+                        <div className="w-full h-64 aspect-square object-cover">
                           <img
                             src={post.image_urls[0]}
                             alt={`Post image`}
-                            className="w-full h-full"
+                            className="w-full h-full  object-cover"
                           />
                         </div>
                       ) : (
