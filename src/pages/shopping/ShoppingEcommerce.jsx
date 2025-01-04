@@ -63,7 +63,7 @@ const ShoppingEcommerce = () => {
     <div className="pb-16">
       {/* Header */}
       <div className="p-4 border-b">
-        <div className="flex items-center gap-2 mb-4">
+        {/* <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gray-200" />
             <span className="text-sm font-medium">
@@ -73,7 +73,7 @@ const ShoppingEcommerce = () => {
           <button className="ml-auto px-3 py-1 text-lg border font-bold rounded-xl border-gray-300 text-green-600">
             로그아웃
           </button>
-        </div>
+        </div> */}
 
         <div className="relative flex items-center border border-green-600 rounded-xl">
           <input

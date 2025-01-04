@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Skeleton } from "../components/ui/skeleton";
 import { UserIcon } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { AdminIcon } from "../components/icons/Icons";
 
 const BottomNav = () => {
   const location = useLocation();
@@ -75,6 +76,12 @@ const BottomNav = () => {
       ),
       to: "/profile",
     },
+    // {
+    //   id: 5,
+    //   label: "Admin",
+    //   icon: <AdminIcon className="w-7 h-7" />,
+    //   to: "/admin",
+    // },
   ];
 
   return (

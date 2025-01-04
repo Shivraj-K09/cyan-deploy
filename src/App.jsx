@@ -39,6 +39,8 @@ import ProductReview from "./pages/shopping/ProductReview";
 import ShoppingCart from "./pages/shopping/ShoppingCart";
 import ShoppingEcommerce from "./pages/shopping/ShoppingEcommerce";
 import TopNav from "./pages/TopNav";
+import Admin from "./pages/admin/Admin";
+import StatusRecord from "./pages/admin/Status-Record";
 
 function App() {
   const location = useLocation();
@@ -78,7 +80,14 @@ function App() {
     "/fish-catch-record/filter-post",
   ];
 
-  const showTopNavPaths = ["/", "/my-map", "/fish-catch-record"];
+  const showTopNavPaths = [
+    "/",
+    "/my-map",
+    "/fish-catch-record",
+    "/shopping",
+    "/admin",
+    "/admin/status-record",
+  ];
 
   useEffect(() => {
     const shouldShowBottom = !hideBottomNavPaths.includes(location.pathname);
@@ -132,6 +141,9 @@ function App() {
           <Route path="create-post" element={<CreatePost />} />
         </Route>
         <Route path="/my-map" element={<MyMap />} />
+        {/* Admin Routes Here */}
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/status-record" element={<StatusRecord />} />
       </Routes>
       {showBottomNav && (
         <div
