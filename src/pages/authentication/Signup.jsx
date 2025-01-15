@@ -68,7 +68,7 @@ const Signup = () => {
     if (name === "phone") {
       const phoneRegex = /^\+?[1-9]\d{1,14}$/;
       if (!phoneRegex.test(value.replace(/\s+/g, ""))) {
-        setPhoneError("올바른 국제 전화번호 형식을 입력해주세요");
+        setPhoneError("올바른 형식을 입력해주세요");
       } else {
         setPhoneError("");
       }
@@ -347,14 +347,14 @@ const Signup = () => {
 
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-base font-normal">
-              전화번호 (국가 코드 포함)
+              전화번호
             </Label>
             <div className="flex space-x-2">
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="+91 98765 43210"
+                placeholder="010-0000-0000"
                 className="h-14 flex-grow rounded-xl border-[#008000] px-4 text-base placeholder:text-[#999] focus:ring-1 focus:ring-[#008000] focus:border-[#008000] focus:outline-none"
                 value={formData.phone}
                 onChange={handleInputChange}
@@ -374,9 +374,6 @@ const Signup = () => {
               </Button>
             </div>
             {phoneError && <p className="text-sm text-red-500">{phoneError}</p>}
-            <p className="text-sm text-gray-500">
-              예: +91 98765 43210 (인도), +1 234 567 8900 (미국)
-            </p>
           </div>
 
           <div className="space-y-2">

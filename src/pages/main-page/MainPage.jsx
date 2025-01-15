@@ -120,7 +120,7 @@ export default function MapView() {
   const [persistedLocation, setPersistedLocation] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Added authentication state
 
-  const tabs = ["1주전", "2주전", "3주전", "한달전"];
+  const tabs = ["1주", "2주", "3주", "한달"];
 
   const saveLocationToLocalStorage = useCallback((location) => {
     localStorage.setItem("userLocation", JSON.stringify(location));

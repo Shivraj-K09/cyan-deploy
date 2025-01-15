@@ -718,9 +718,9 @@ export default function MyMap() {
     navigate("/login");
   };
 
-  if (!user) {
+  if (!user.id) {
     return (
-      <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+      <AlertDialog open={true} onOpenChange={setShowLoginAlert}>
         <AlertDialogContent className="w-[350px] rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>

@@ -175,7 +175,7 @@ const Profile = () => {
         </Link>
         <div className="w-px h-8 bg-gray-200" />
         <Link to="/my-best" className="text-center flex-1">
-          <div className="text-base font-medium">48.3cm</div>
+          <div className="text-base font-medium">0cm</div>
           <div className="text-xs text-muted-foreground">나의 최대어</div>
         </Link>
         <div className="w-px h-8 bg-gray-200" />

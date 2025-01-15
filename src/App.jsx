@@ -142,8 +142,8 @@ function App() {
         </Route>
         <Route path="/my-map" element={<MyMap />} />
         {/* Admin Routes Here */}
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/status-record" element={<StatusRecord />} />
+        {/* <Route path="/admin" element={<Admin />} /> */}
+        {/* <Route path="/admin/status-record" element={<StatusRecord />} /> */}
       </Routes>
       {showBottomNav && (
         <div
