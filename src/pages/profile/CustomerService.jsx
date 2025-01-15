@@ -130,7 +130,7 @@ const CustomerService = () => {
             <div>
               <h2 className="text-lg font-bold mb-4">제목</h2>
               <Input
-                placeholder="제목을 작성해주세."
+                placeholder="제목을 작성해주세요"
                 className="w-full border-0 border-b border-gray-200 rounded-none px-0 h-12 shadow-none focus-visible:ring-0 focus-visible:border-black"
               />
             </div>
