@@ -1,0 +1,47 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  ShoppingCart,
+  Calendar,
+  Bell,
+  BookOpen,
+  Headphones,
+  Megaphone,
+} from "lucide-react";
+
+const navItems = [
+  { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
+  { name: "Member Management", icon: Users, href: "/admin/member-management" },
+  { name: "Shopping Options", icon: ShoppingCart, href: "/admin/shopping" },
+  { name: "Events", icon: Calendar, href: "/admin/events" },
+  { name: "Notices", icon: Bell, href: "/admin/notice" },
+  { name: "User Guide", icon: BookOpen, href: "/admin/user-guide" },
+  { name: "Customer Center", icon: Headphones, href: "/admin/customer-center" },
+  { name: "Advertisement", icon: Megaphone, href: "/admin/advertisement " },
+];
+
+const MobileNavigation = () => {
+  return (
+    <nav className="z-50">
+      <ul className="flex flex-col">
+        {navItems.map((item) => (
+          <li key={item.name}>
+            <Link
+              to={item.href}
+              className="flex items-center p-4 hover:bg-gray-50"
+            >
+              <item.icon className="h-6 w-6 text-gray-500 mr-3" />
+              <span className="text-sm font-medium text-gray-900">
+                {item.name}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
+export default MobileNavigation;

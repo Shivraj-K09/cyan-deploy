@@ -1,10 +1,34 @@
 import { useEffect, useRef, useState } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
+import { AddProduct } from "./components/AdminDashboard/AddProduct";
+import { AdvertisementDetails } from "./components/AdminDashboard/AdvertisementDetails";
+import { CreateAdvertisement } from "./components/AdminDashboard/CreatAdvertisement";
+import { CreateEvent } from "./components/AdminDashboard/CreateEvent";
+import { CreateNotice } from "./components/AdminDashboard/CreateNotice";
+import { CreateUserGuide } from "./components/AdminDashboard/CreateUserGuide";
+import { EventsDetails } from "./components/AdminDashboard/EventsDetails";
+import { InquiryDetails } from "./components/AdminDashboard/InquiryDetails";
+import { NoticeDetails } from "./components/AdminDashboard/NoticeDetails";
+import ProductList from "./components/AdminDashboard/ProductList";
+import { UserGuideById } from "./components/AdminDashboard/UserGuideById";
+import { BlockedUserCheck } from "./components/BlockedUserCheck";
+import LoadingSpinner from "./components/LoadingSpinner";
 import { Toaster } from "./components/ui/sonner";
+import AdminPage from "./pages/admin/AdminPage";
+import Advertisement from "./pages/admin/AdminPages/Advertisement";
+import CustomerCenter from "./pages/admin/AdminPages/CustomerCenter";
+import Dashboard from "./pages/admin/AdminPages/dashboard";
+import { Event } from "./pages/admin/AdminPages/Event";
+import MemberManagement from "./pages/admin/AdminPages/MemberManagement";
+import Notice from "./pages/admin/AdminPages/Notice";
+import { Shopping } from "./pages/admin/AdminPages/Shopping";
+import UserGuide from "./pages/admin/AdminPages/UserGuide";
 import AuthCallback from "./pages/authentication/AuthCallback";
 import Login from "./pages/authentication/Login";
 import Signup from "./pages/authentication/Signup";
+import { BlockedPage } from "./pages/BlockedPage";
 import BottomNav from "./pages/BottomNav";
 import CredentialsResult from "./pages/find-credent/CredentialsResult";
 import FindCredentials from "./pages/find-credent/FindCredentials";
@@ -20,11 +44,12 @@ import ProductReviews from "./pages/ProductReviews/ProductReviews";
 import ProductReviewWrite from "./pages/ProductReviews/ProductReviewWrite";
 import Comments from "./pages/profile/comments";
 import CustomerService from "./pages/profile/CustomerService";
+import { CustomerServiceInquiry } from "./pages/profile/CustomerServiceInquiry";
 import DeliveryAddress from "./pages/profile/DeliveryAddress";
 import Guide from "./pages/profile/guide";
+import { Inbox } from "./pages/profile/inbox";
 import MobilePoints from "./pages/profile/MobilePoints";
 import MyBest from "./pages/profile/MyBest";
-import Notices from "./pages/profile/notices";
 import OrderDetails from "./pages/profile/order-details";
 import Orders from "./pages/profile/orders";
 import PasswordChanage from "./pages/profile/PasswordChange";
@@ -39,14 +64,40 @@ import ProductReview from "./pages/shopping/ProductReview";
 import ShoppingCart from "./pages/shopping/ShoppingCart";
 import ShoppingEcommerce from "./pages/shopping/ShoppingEcommerce";
 import TopNav from "./pages/TopNav";
-import Admin from "./pages/admin/Admin";
-import StatusRecord from "./pages/admin/Status-Record";
+import { checkAuth } from "./store/authSlice";
+import { UserEvents } from "./pages/profile/User-Event";
+import { UserEventDetails } from "./pages/profile/UserEventDetails";
+import UserNotices from "./pages/profile/notices";
+import { UserNoticeDetails } from "./pages/profile/UserNoticeDetails";
+import { GuideDetails } from "./pages/profile/GuideDetails";
+
+const ProtectedRoute = ({ children, adminOnly = false }) => {
+  const { user, loading, initialCheckDone } = useSelector(
+    (state) => state.auth
+  );
+
+  if (!initialCheckDone) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && user.role !== "admin" && user.role !== "super_admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 function App() {
   const location = useLocation();
+  const dispatch = useDispatch();
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [showTopNav, setShowTopNav] = useState(false);
   const bottomNavRef = useRef(null);
+  const { initialCheckDone } = useSelector((state) => state.auth);
 
   const hideBottomNavPaths = [
     "/login",
@@ -78,6 +129,7 @@ function App() {
     "/auth/callback",
     "/fish-catch-record/create-post",
     "/fish-catch-record/filter-post",
+    "/block-page-404",
   ];
 
   const showTopNavPaths = [
@@ -86,8 +138,9 @@ function App() {
     "/fish-catch-record",
     "/shopping",
     "/admin",
-    "/admin/status-record",
   ];
+
+  const noScrollTopNavPaths = ["/shopping/:id"];
 
   useEffect(() => {
     const shouldShowBottom = !hideBottomNavPaths.includes(location.pathname);
@@ -97,10 +150,74 @@ function App() {
     setShowTopNav(shouldShowTop);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      dispatch(checkAuth());
+    }, 60000); // Check every minute
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        dispatch(checkAuth());
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check if we're on a product detail page (/shopping/{id})
+      const isProductDetail = /^\/shopping\/[^/]+$/.test(location.pathname);
+
+      if (
+        window.scrollY > 0 &&
+        !noScrollTopNavPaths.some((path) =>
+          location.pathname.startsWith(path)
+        ) &&
+        !isProductDetail
+      ) {
+        setShowTopNav(true);
+      } else {
+        setShowTopNav(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setShowBottomNav(false);
+      } else {
+        setShowBottomNav(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!initialCheckDone) {
+      dispatch(checkAuth());
+    }
+  }, [dispatch, initialCheckDone]);
+
+  if (!initialCheckDone) {
+    return <LoadingSpinner />;
+  }
+
   return (
-    <>
+    <BlockedUserCheck>
       {showTopNav && <TopNav />}
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<MainPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -112,39 +229,327 @@ function App() {
         />
         <Route path="/find-password" element={<FindPassword />} />
         <Route path="/find-password/reset" element={<ResetPassword />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/shopping-cart" element={<ShoppingCart />} />
-        <Route path="/shopping" element={<ShoppingEcommerce />} />
-        <Route path="/product-detail" element={<ProductDetail />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/mobile-points" element={<MobilePoints />} />
-        <Route path="/my-best" element={<MyBest />} />
-        <Route path="/records" element={<Records />} />
-        <Route path="/comments" element={<Comments />} />
-        <Route path="/subscribe" element={<Subscribe />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/order-details" element={<OrderDetails />} />
-        <Route path="/notices" element={<Notices />} />
-        <Route path="/guide" element={<Guide />} />
-        <Route path="/customer-service" element={<CustomerService />} />
-        <Route path="/product-reviews" element={<ProductReviews />} />
-        <Route path="/product-reviews/write" element={<ProductReviewWrite />} />
-        <Route path="/profile-settings" element={<ProfileSettings />} />
-        <Route path="/password-change" element={<PasswordChanage />} />
-        <Route path="/phone-verification" element={<PhoneVerification />} />
-        <Route path="/delivery-address" element={<DeliveryAddress />} />
-        <Route path="/postal-code-search" element={<PostalCodeSearch />} />
-        <Route path="/product-review" element={<ProductReview />} />
-        <Route path="/fish-catch-record">
-          <Route index element={<FishCatchRecord />} />
-          <Route path="filter-post" element={<FilterPost />} />
-          <Route path="create-post" element={<CreatePost />} />
-        </Route>
-        <Route path="/my-map" element={<MyMap />} />
-        {/* Admin Routes Here */}
-        {/* <Route path="/admin" element={<Admin />} /> */}
-        <Route path="/admin/status-record" element={<StatusRecord />} />
+
+        {/* Protected routes */}
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shopping-cart"
+          element={
+            <ProtectedRoute>
+              <ShoppingCart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shopping"
+          element={
+            <ProtectedRoute>
+              <ShoppingEcommerce />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/shopping/:id"
+          element={
+            <ProtectedRoute>
+              <ProductDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mobile-points"
+          element={
+            <ProtectedRoute>
+              <MobilePoints />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-best"
+          element={
+            <ProtectedRoute>
+              <MyBest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/records"
+          element={
+            <ProtectedRoute>
+              <Records />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/comments"
+          element={
+            <ProtectedRoute>
+              <Comments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscribe"
+          element={
+            <ProtectedRoute>
+              <Subscribe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-details"
+          element={
+            <ProtectedRoute>
+              <OrderDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notices"
+          element={
+            <ProtectedRoute>
+              <UserNotices />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notices/:id"
+          element={
+            <ProtectedRoute>
+              <UserNoticeDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guide"
+          element={
+            <ProtectedRoute>
+              <Guide />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guide/:id"
+          element={
+            <ProtectedRoute>
+              <GuideDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer-service"
+          element={
+            <ProtectedRoute>
+              <CustomerService />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-service/:id"
+          element={
+            <ProtectedRoute>
+              <CustomerServiceInquiry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/product-reviews"
+          element={
+            <ProtectedRoute>
+              <ProductReviews />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/product-reviews/write"
+          element={
+            <ProtectedRoute>
+              <ProductReviewWrite />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile-settings"
+          element={
+            <ProtectedRoute>
+              <ProfileSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <Inbox />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/password-change"
+          element={
+            <ProtectedRoute>
+              <PasswordChanage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/phone-verification"
+          element={
+            <ProtectedRoute>
+              <PhoneVerification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery-address"
+          element={
+            <ProtectedRoute>
+              <DeliveryAddress />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/postal-code-search"
+          element={
+            <ProtectedRoute>
+              <PostalCodeSearch />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/product-review"
+          element={
+            <ProtectedRoute>
+              <ProductReview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fish-catch-record"
+          element={
+            <ProtectedRoute>
+              <FishCatchRecord />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fish-catch-record/filter-post"
+          element={
+            <ProtectedRoute>
+              <FilterPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fish-catch-record/create-post"
+          element={
+            <ProtectedRoute>
+              <CreatePost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-map"
+          element={
+            <ProtectedRoute>
+              <MyMap />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <UserEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/events/:id"
+          element={
+            <ProtectedRoute>
+              <UserEventDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute adminOnly>
+              <Routes>
+                <Route index element={<AdminPage />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route
+                  path="member-management"
+                  element={<MemberManagement />}
+                />
+                <Route path="advertisement" element={<Advertisement />} />
+                <Route
+                  path="advertisement/create"
+                  element={<CreateAdvertisement />}
+                />
+                <Route
+                  path="advertisement/:id"
+                  element={<AdvertisementDetails />}
+                />
+                <Route path="customer-center" element={<CustomerCenter />} />
+                <Route
+                  path="customer-center/inquiry/:id"
+                  element={<InquiryDetails />}
+                />
+                <Route path="user-guide" element={<UserGuide />} />
+                <Route path="user-guide/create" element={<CreateUserGuide />} />
+                <Route path="user-guide/:id" element={<UserGuideById />} />
+                <Route path="notice" element={<Notice />} />
+                <Route path="notice/create" element={<CreateNotice />} />
+                <Route path="notice/:id" element={<NoticeDetails />} />
+                <Route path="events" element={<Event />} />
+                <Route path="event/create" element={<CreateEvent />} />
+                <Route path="events/:id" element={<EventsDetails />} />
+                <Route path="shopping" element={<Shopping />} />
+                <Route path="shopping/add-product" element={<AddProduct />} />
+                <Route path="shopping/product-list" element={<ProductList />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Blocked user route */}
+        <Route path="/block-page-404" element={<BlockedPage />} />
       </Routes>
+
       {showBottomNav && (
         <div
           ref={bottomNavRef}
@@ -154,7 +559,7 @@ function App() {
         </div>
       )}
       <Toaster richColors />
-    </>
+    </BlockedUserCheck>
   );
 }
 

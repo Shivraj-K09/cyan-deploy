@@ -1,41 +1,74 @@
-import { Card, CardContent } from "../../components/ui/card";
-import {
-  Fish,
-  Users,
-  Calendar,
-  ShoppingBag,
-  Megaphone,
-  Clipboard,
-  BarChart2,
-} from "lucide-react";
+"use client";
 
-const adminPages = [
-  { title: "Status Record", href: "/admin/status-record", icon: Clipboard },
-  { title: "Fish Record", href: "/admin/fish-record", icon: Fish },
-  { title: "Member Management", href: "/admin/member-management", icon: Users },
-  { title: "Monthly Carps", href: "/admin/monthly-carps", icon: Calendar },
-  { title: "Product Review", href: "/admin/product-review", icon: ShoppingBag },
-  { title: "Events", href: "/admin/events", icon: Megaphone },
-  { title: "Notices", href: "/admin/notices", icon: BarChart2 },
-];
+import { useState, useEffect } from "react";
+import { Sidebar } from "./components/Sidebar";
+import { Dashboard } from "./components/Dashboard";
+import { MemberManagement } from "./components/MemberManagement";
+import { ShoppingOptions } from "./components/ShoppingOptions";
+import { Events } from "./components/Events";
+import { Notices } from "./components/Notices";
+import { UserGuide } from "./components/UserGuide";
+import { CustomerCenter } from "./components/CustomerCenter";
+import { Advertisement } from "./components/Advertisement";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function Admin() {
+export default function AdminDashboard() {
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  };
+
+  const renderSection = () => {
+    const components = {
+      dashboard: Dashboard,
+      memberManagement: MemberManagement,
+      shoppingOptions: ShoppingOptions,
+      events: Events,
+      notices: Notices,
+      userGuide: UserGuide,
+      customerCenter: CustomerCenter,
+      advertisement: Advertisement,
+    };
+    const Component = components[activeSection] || Dashboard;
+    return <Component />;
+  };
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-6 ">Administrator Panel</h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {adminPages.map((page) => (
-          <a key={page.href} href={page.href}>
-            <Card className="hover:bg-gray-100 shadow-none transition-colors duration-200 ease-in-out">
-              <CardContent className="flex items-center p-4">
-                <page.icon className="w-5 h-5 text-muted-foreground mr-3" />
-                <span className="text-sm font-medium text-gray-700">
-                  {page.title}
-                </span>
-              </CardContent>
-            </Card>
-          </a>
-        ))}
+    <div
+      className={`flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ${theme}`}
+    >
+      <Sidebar
+        setActiveSection={setActiveSection}
+        activeSection={activeSection}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
+      <div className="flex-1 overflow-auto p-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h1 className="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-200">
+              {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+            </h1>
+            {renderSection()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

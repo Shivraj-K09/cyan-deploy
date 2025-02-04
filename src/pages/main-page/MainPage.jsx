@@ -623,8 +623,8 @@ export default function MapView() {
         className="relative flex-1 z-0"
         style={{
           height: "calc(100vh + 100px)",
-          marginTop: "-100px",
-          marginLeft: "-25px",
+          marginTop: "-210px",
+          marginLeft: "-30px",
         }}
       >
         {isLoading && (
@@ -661,7 +661,7 @@ export default function MapView() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-4 bg-white border-t z-50">
+      {/* <div className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-4 bg-white border-t z-50">
         <button className="flex flex-col items-center gap-1">
           <svg
             width="24"
@@ -714,7 +714,7 @@ export default function MapView() {
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

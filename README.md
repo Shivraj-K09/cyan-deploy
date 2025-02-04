@@ -57,18 +57,28 @@ Supporters are the top-tier members with the most benefits.
 
 ## Things to do & Some doubts
 
-- [ ] Make Watermark text bigger (Mainpage)
+- [✅] Make Watermark text bigger (Mainpage)
 
-- [ ] Marker issue with color and changing to default color (Mainpage)
+- [✅] Marker issue with color and changing to default color (Mainpage)
 
-- [ ? ] If user is not logged in then can that user capture the image ?
+- [✅] If user is not logged in then can that user capture the image ?
 
 - [ ? ] Need korean translation for main page tabs, fish catch record search tabs
 
 - [ ? ] So they are saying taking pictures has fixed ratio ? What is the ratio ?
 
-- [ ] Main page public posts need to show on the basis of the current location
+- [✅]Main page public posts need to show on the basis of the current location
 
-- [ ] Fix the records posts are not visible at first after refresh they are visible
+- [✅] Fix the records posts are not visible at first after refresh they are visible
 
-- [ ? ] If user becomes the gold or supporter does he receives the points instantly because he became the gold/supporter or does he receive that points after the one month
+- [✅] If user becomes the gold or supporter does he receives the points instantly because he became the gold/supporter or does he receive that points after the one month
+
+- [ ] Now when user sends the message from the inbox that message where can admin see it ?
+
+- [ ] Does admin has access to delete the posts user created ?
+
+- [ ] Need payment api
+
+- [ ] Need korean translation of everything to implement in the korea
+
+- [ ] Need to make video of the admin section

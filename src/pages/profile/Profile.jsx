@@ -23,6 +23,7 @@ const Profile = () => {
   const [postCount, setPostCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
   const [points, setPoints] = useState(0);
+  const [activeAd, setActiveAd] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -97,6 +98,31 @@ const Profile = () => {
     };
 
     fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    const fetchLatestActiveAd = async () => {
+      const { data, error } = await supabase
+        .from("advertisements")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error("Error fetching advertisement:", error);
+        setActiveAd(null);
+      } else if (data && data.length > 0) {
+        setActiveAd(data[0]);
+      } else {
+        setActiveAd(null);
+      }
+    };
+
+    fetchLatestActiveAd();
+    const adInterval = setInterval(fetchLatestActiveAd, 60000); // Check every minute
+
+    return () => clearInterval(adInterval);
   }, []);
 
   const renderMembershipIcon = () => {
@@ -192,7 +218,7 @@ const Profile = () => {
       <hr className="my-4 border-t border-gray-200" />
 
       {/* Menu List */}
-      <div className="flex-1 mt-6 overflow-y-auto space-y-1 pb-24">
+      <div className="flex-1 overflow-y-auto space-y-1 pb-24">
         <Link to="/inbox" className="block px-4 py-3">
           <span className="text-sm">내편지함</span>
         </Link>
@@ -215,13 +241,31 @@ const Profile = () => {
         <Link to="/subscribe" className="block px-4 py-3">
           <span className="text-sm">유료 구독하기</span>
         </Link>
-        <div className="px-4 py-3">
+
+        <Link to="/events" className="block px-4 py-3">
           <span className="text-sm">이벤트</span>
-        </div>
+        </Link>
 
         <div className="px-4 py-2">
-          <div className="w-full py-6 px-4 shadow-sm border rounded-lg">
-            Ad Will show in this section
+          <div className="w-full h-16 flex items-center justify-center shadow-sm border border-black/30 rounded-lg overflow-hidden">
+            {activeAd ? (
+              <a
+                href={activeAd.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-full"
+              >
+                <img
+                  src={activeAd.image_url || "/placeholder.svg"}
+                  alt={activeAd.title}
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            ) : (
+              <span className="text-[0.85rem] text-muted-foreground">
+                There is no active advertisement at this moment.
+              </span>
+            )}
           </div>
         </div>
         <div className="px-4 py-3">

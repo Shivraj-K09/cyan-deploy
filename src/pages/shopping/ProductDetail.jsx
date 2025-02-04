@@ -1,24 +1,55 @@
-import React, { useState } from "react";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaChevronRight,
-  FaChevronDown,
-} from "react-icons/fa";
+import { useState, useEffect } from "react";
 import { FiShare2 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { FaChevronRight } from "react-icons/fa";
+import { supabase } from "@/lib/supabaseClient";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const ProductDetail = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = 4; // Adjust this based on the number of images you have
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
+  const [api, setApi] = React.useState(null);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % totalSlides);
-  };
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-  };
+      if (error) {
+        console.error("Error fetching product:", error);
+      } else {
+        setProduct(data);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   const feedbackSections = [
     {
@@ -56,18 +87,29 @@ const ProductDetail = () => {
     },
   ];
 
-  const [openSectionId, setOpenSectionId] = useState(null);
-
-  const toggleSection = (id) => {
-    setOpenSectionId(openSectionId === id ? null : id);
-  };
+  if (!product) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       {/* Navigation Bar */}
       <div className="flex justify-between items-center p-4 border-b">
         <Link to="/shopping" className="text-gray-600">
-          <FaArrowLeft className="h-6 w-6" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
         </Link>
         <h1 className="text-lg font-semibold">뒤로</h1>
         <button className="text-gray-600">
@@ -76,38 +118,34 @@ const ProductDetail = () => {
       </div>
 
       {/* Carousel */}
-      <div className="relative mt-4 mx-4">
-        <div className="aspect-square bg-gray-200 rounded-2xl overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            Image {currentSlide + 1}
-          </div>
-        </div>
-
-        {/* Carousel Controls */}
-        <button
-          className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-          onClick={prevSlide}
-          aria-label="Previous Slide"
-        >
-          <FaArrowLeft className="h-6 w-6" />
-        </button>
-        <button
-          className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-          onClick={nextSlide}
-          aria-label="Next Slide"
-        >
-          <FaArrowRight className="h-6 w-6" />
-        </button>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {[...Array(totalSlides)].map((_, index) => (
+      <div className="mt-4 mx-4">
+        <Carousel className="relative" opts={{ loop: true }} setApi={setApi}>
+          <CarouselContent>
+            {product.image_urls.map((image, index) => (
+              <CarouselItem key={index}>
+                <div className="aspect-square bg-gray-200 rounded-2xl overflow-hidden">
+                  <img
+                    src={image || "/placeholder.svg"}
+                    alt={`Product ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-2 top-1/2 transform -translate-y-1/2" />
+          <CarouselNext className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+        </Carousel>
+        {/* Dots */}
+        <div className="flex justify-center gap-1 mt-2">
+          {product.image_urls.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full ${
-                currentSlide === index ? "bg-gray-800" : "bg-gray-400"
-              }`}
-              onClick={() => setCurrentSlide(index)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-colors",
+                index === current ? "bg-gray-800" : "bg-gray-300"
+              )}
+              onClick={() => api?.scrollTo(index)}
             />
           ))}
         </div>
@@ -115,36 +153,43 @@ const ProductDetail = () => {
 
       {/* Product Description */}
       <div className="bg-white rounded-lg p-6">
-        <p className="text-xl font-bold">어떤 것이든 다 낚는 낚시대</p>
-        <div className="w-full h-[1px] bg-gray-300 my-2" />
-        <p className="text-3xl font-semibold py-3">170,000원</p>
+        <p className="text-3xl font-bold mb-4">{product.price}원</p>
 
-        <div className="flex text-sm gap-5">
-          <div className=" flex flex-col gap-2">
-            <p>[제품설명]</p>
-            <p>[배송비]</p>
-            <p>[브랜드]</p>
-            <p>[제조사]</p>
+        <div className="space-y-2">
+          <div className="flex text-sm">
+            <div className="w-[80px] flex-shrink-0 text-gray-600">
+              [제품설명]
+            </div>
+            <div className="flex-1">{product.description}</div>
           </div>
-          <div className="flex flex-col gap-2">
-            <p>이 낚시대는 어떤 것이든 다 낚아드립니다. </p>
-            <p>3,000원</p>
-            <p>낚시상점</p>
-            <p>FISH SHOP</p>
+
+          <div className="flex text-sm">
+            <div className="w-[80px] flex-shrink-0 text-gray-600">[브랜드]</div>
+            <div className="flex-1">{product.brand}</div>
+          </div>
+
+          <div className="flex text-sm">
+            <div className="w-[80px] flex-shrink-0 text-gray-600">[제조사]</div>
+            <div className="flex-1">{product.manufacturer}</div>
+          </div>
+
+          <div className="flex text-sm">
+            <div className="w-[80px] flex-shrink-0 text-gray-600">[배송비]</div>
+            <div className="flex-1">3,000원</div>
           </div>
         </div>
       </div>
 
-      <div className=" bg-gray-300 w-full h-1 my-4" />
+      <div className="bg-gray-300 w-full h-1 my-4" />
 
       {/* Feedback Sections */}
       <p className="ml-4 text-xl font-bold">상품 리뷰</p>
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 pb-20">
         {feedbackSections.map((section) => (
-          <div>
+          <div key={section.id}>
             <Link to="/product-review">
               <div className="w-full h-[0.6px] bg-gray-300 my-1" />
-              <div key={section.id} className=" rounded-lg">
+              <div className="rounded-lg">
                 <div className="flex justify-between items-center">
                   <div className="py-2">
                     <p className="text-[10px]">{section.miniTitle}</p>
@@ -158,9 +203,9 @@ const ProductDetail = () => {
 
                 <div className="flex items-center gap-2">
                   <div className="w-32 h-20 bg-gray-200" />
-                  <div className=" text-wrap text-[10.5px] text-[#424242]">
-                    <p className=" ">{section.content1}</p>
-                    <p className=" ">{section.content2}</p>
+                  <div className="text-wrap text-[10.5px] text-[#424242]">
+                    <p>{section.content1}</p>
+                    <p>{section.content2}</p>
                     <p className="mt-2">{section.content3}</p>
                   </div>
                 </div>
@@ -171,7 +216,7 @@ const ProductDetail = () => {
         <div className="py-8 w-full flex items-center justify-center">
           <Link
             to="/payment"
-            className=" bg-[#128100] text-white p-3 px-6 text-lg font-bold  rounded-xl"
+            className="bg-[#128100] text-white p-3 px-6 text-lg font-bold rounded-xl"
           >
             결제하기
           </Link>

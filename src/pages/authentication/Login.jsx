@@ -40,6 +40,7 @@ const Login = () => {
       if (!userData) {
         console.log("No user found with username:", username);
         toast.error("Invalid username or password");
+        setIsLoading(false);
         return;
       }
 
@@ -57,9 +58,30 @@ const Login = () => {
         throw authError;
       }
 
-      console.log("Login successful!");
-      toast.success("Login successful!");
-      navigate("/");
+      console.log("Login successful!", authData);
+
+      // Check if the user is blocked
+      const { data: userStatus, error: statusError } = await supabase
+        .from("users")
+        .select("is_blocked")
+        .eq("email", userData.email)
+        .single();
+
+      if (statusError) {
+        console.error("Error fetching user status:", statusError);
+        throw statusError;
+      }
+
+      if (userStatus.is_blocked) {
+        console.log("User is blocked");
+        toast.error("You are blocked from accessing this page", {
+          position: "top-center",
+        });
+        navigate("/block-page-404");
+      } else {
+        toast.success("Login successful!");
+        navigate("/");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed", {

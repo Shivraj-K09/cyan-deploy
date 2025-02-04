@@ -511,7 +511,7 @@ const FishCatchForm = () => {
           </div>
         </div>
       </div>
-      <div className="min-h-screen bg-gray-100 pt-16">
+      <div className="min-h-screen bg-gray-100 pt-16 pb-20">
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-lg mx-auto bg-white rounded-lg shadow-md p-6"

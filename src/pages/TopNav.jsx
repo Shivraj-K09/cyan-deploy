@@ -124,7 +124,7 @@ const TopNav = () => {
   const formattedPoints = new Intl.NumberFormat("ko-KR").format(user.points);
 
   return (
-    <div className="p-4 border-b sticky top-0 z-50 bg-white">
+    <div className="p-4 border-b sticky w-full top-0 z-50 bg-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isLoading ? (

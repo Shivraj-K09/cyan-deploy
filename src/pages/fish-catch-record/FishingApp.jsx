@@ -894,7 +894,7 @@ const FishingApp = () => {
                                     onChange={(e) =>
                                       setNewComment(e.target.value)
                                     }
-                                    className="flex-1 h-11"
+                                    className="flex-1 h-11 text-sm"
                                     disabled={post.id.startsWith("dummy")}
                                   />
                                   <Button

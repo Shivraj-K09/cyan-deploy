@@ -50,7 +50,7 @@ const CameraButton = ({ userLocation, onImageCapture }) => {
           : canvas.height * 0.25;
 
         const fontSize = isMobileView
-          ? Math.max(12, Math.min(watermarkWidth / 18, watermarkHeight / 8))
+          ? Math.max(20, Math.min(watermarkWidth / 12, watermarkHeight / 6))
           : Math.max(14, Math.floor(canvas.width / 50));
 
         const padding = Math.max(
