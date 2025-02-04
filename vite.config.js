@@ -42,8 +42,48 @@ export default defineConfig({
           },
         ],
       },
+      // Add workbox configuration
+      workbox: {
+        maximumFileSizeToCacheInBytes: 3000000, // Increase cache limit to 3MB
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./i, // Adjust this pattern for your API calls
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+            },
+          },
+        ],
+      },
     }),
   ],
+  // Add build optimization configuration
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            "react",
+            "react-dom",
+            "react-router-dom",
+            // Add other large dependencies here
+          ],
+          // Split features into separate chunks
+          features: [
+            // Add paths to your feature modules
+            // Example: './src/features/dashboard',
+            // './src/features/auth',
+          ],
+        },
+      },
+    },
+    // Add chunk size warning limit
+    chunkSizeWarningLimit: 1000, // Increase warning limit to 1000kb
+  },
   base: "/",
   resolve: {
     alias: {
