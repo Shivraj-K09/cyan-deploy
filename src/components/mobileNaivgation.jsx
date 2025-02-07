@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { name: "계기반", icon: LayoutDashboard, href: "/admin/dashboard" },
+  { name: "게시판", icon: LayoutDashboard, href: "/admin/dashboard" },
   { name: "회원관리", icon: Users, href: "/admin/member-management" },
   { name: "쇼핑 옵션", icon: ShoppingCart, href: "/admin/shopping" },
   { name: "이벤트", icon: Calendar, href: "/admin/events" },
