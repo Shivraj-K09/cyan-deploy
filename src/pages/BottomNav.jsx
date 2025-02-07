@@ -51,7 +51,7 @@ const BottomNav = () => {
     { id: 3, label: "쇼핑", icon: <FaShoppingBag />, to: "/shopping" },
     {
       id: 4,
-      label: "Admin",
+      label: "관리자",
       icon: <AdminIcon className="w-7 h-7" />,
       to: "/admin",
       adminOnly: true,

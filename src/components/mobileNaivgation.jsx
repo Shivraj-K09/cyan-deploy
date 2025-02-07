@@ -12,14 +12,14 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
-  { name: "Member Management", icon: Users, href: "/admin/member-management" },
-  { name: "Shopping Options", icon: ShoppingCart, href: "/admin/shopping" },
-  { name: "Events", icon: Calendar, href: "/admin/events" },
-  { name: "Notices", icon: Bell, href: "/admin/notice" },
-  { name: "User Guide", icon: BookOpen, href: "/admin/user-guide" },
-  { name: "Customer Center", icon: Headphones, href: "/admin/customer-center" },
-  { name: "Advertisement", icon: Megaphone, href: "/admin/advertisement " },
+  { name: "계기반", icon: LayoutDashboard, href: "/admin/dashboard" },
+  { name: "회원관리", icon: Users, href: "/admin/member-management" },
+  { name: "쇼핑 옵션", icon: ShoppingCart, href: "/admin/shopping" },
+  { name: "이벤트", icon: Calendar, href: "/admin/events" },
+  { name: "공지사항", icon: Bell, href: "/admin/notice" },
+  { name: "사용자 가이드", icon: BookOpen, href: "/admin/user-guide" },
+  { name: "고객센터", icon: Headphones, href: "/admin/customer-center" },
+  { name: "광고", icon: Megaphone, href: "/admin/advertisement " },
 ];
 
 const MobileNavigation = () => {
