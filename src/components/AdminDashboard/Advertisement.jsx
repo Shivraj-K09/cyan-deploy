@@ -91,7 +91,7 @@ export function AdvertisementPage() {
       <div className="flex items-center gap-2 mb-6">
         <Input
           type="search"
-          placeholder="Search advertisements..."
+          placeholder="광고 검색..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 text-sm shadow-none"
@@ -102,7 +102,7 @@ export function AdvertisementPage() {
           className="bg-[#128100] hover:bg-[#128100]/90 text-white px-3 py-1 h-10 text-sm"
         >
           <PlusIcon className="h-4 w-4" />
-          Create Ad
+          광고 만들기
         </Button>
       </div>
 
@@ -118,7 +118,7 @@ export function AdvertisementPage() {
                 ad.is_active ? "bg-[#128100]" : "bg-[#FF0000]"
               } text-white`}
             >
-              {ad.is_active ? "Active" : "Removed"}
+              {ad.is_active ? "활성" : "제거됨"}
             </Badge>
 
             <div className="relative w-full pt-[50%]">
@@ -135,8 +135,8 @@ export function AdvertisementPage() {
             </CardHeader>
             <CardContent>
               <div className="text-[#6a6a6a] text-sm flex justify-between w-full mb-5">
-                <p>Start Date: {ad.start_date}</p>
-                <p>End Date: {ad.end_date}</p>
+                <p>시작 날짜: {ad.start_date}</p>
+                <p>종료 날짜: {ad.end_date}</p>
               </div>
 
               <div className="flex items-center text-[#6a6a6a] text-sm">
@@ -163,7 +163,7 @@ export function AdvertisementPage() {
               variant="outline"
               className="text-[#128100] border-[#128100]"
             >
-              Load More
+              더 불러오기
             </Button>
           </div>
         )}

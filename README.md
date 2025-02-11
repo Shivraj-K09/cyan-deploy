@@ -82,3 +82,5 @@ Supporters are the top-tier members with the most benefits.
 - [ ] Need korean translation of everything to implement in the korea
 
 - [ ] Need to make video of the admin section
+
+- [ ] In dashboard the points paid and points used are not showing the correct values those are just demo values. Need to fix it

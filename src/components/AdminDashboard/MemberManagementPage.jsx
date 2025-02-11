@@ -189,7 +189,7 @@ export function MemberManagementPage() {
       <div className="flex items-center gap-2 mb-4">
         <Input
           type="search"
-          placeholder="Search Members..."
+          placeholder="회원 검색..."
           className="border border-gray-300 h-10 w-full text-sm shadow-none rounded-lg"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -199,7 +199,7 @@ export function MemberManagementPage() {
           variant="outline"
           className="bg-white hover:bg-gray-100 text-xs px-2 py-1 flex items-center gap-1 h-10"
         >
-          <span>Blocked Users</span>
+          <span>차단된 사용자</span>
           <span className="bg-gray-200 text-gray-700 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
             {blockedUsers.length}
           </span>
@@ -211,14 +211,14 @@ export function MemberManagementPage() {
           <TableHeader>
             <TableRow className="bg-gray-50">
               <TableHead className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
-                Name
+                이름
               </TableHead>
 
               <TableHead className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
-                Membership
+                회원
               </TableHead>
               <TableHead className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                행위
               </TableHead>
             </TableRow>
           </TableHeader>

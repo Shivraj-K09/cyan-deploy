@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 
 const navItems = [
   {
-    name: "Add Products",
+    name: "제품 추가",
     icon: PlusCircleIcon,
     href: "/admin/shopping/add-product",
   },
   {
-    name: "List of Products",
+    name: "제품 목록",
     icon: ListIcon,
     href: "/admin/shopping/product-list",
   },
@@ -25,7 +25,7 @@ export function Shopping() {
         <button onClick={handleBack} className="flex items-center">
           <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-semibold text-gray-800 flex-1 ml-2">
-            Shopping
+            쇼핑 옵션
           </h3>
         </button>
       </header>

@@ -6,7 +6,7 @@ export function Event() {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/admin");
   };
 
   return (

@@ -81,13 +81,13 @@ export function CreateUserGuide() {
         onClick={() => navigate(-1)}
       >
         <ChevronLeftIcon className="h-5 w-5 mr-1" />
-        Back to User Guide
+        사용자 가이드로 돌아가기
       </Button>
 
       <Card className="max-w-2xl mx-auto shadow-none mt-5">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-[#2f2f2f]">
-            Create New User Guide
+            새 사용자 가이드 만들기
           </CardTitle>
         </CardHeader>
 
@@ -98,21 +98,19 @@ export function CreateUserGuide() {
                 htmlFor="category"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Category
+                카테고리
               </Label>
               <Select value={category} onValueChange={setCategory} required>
                 <SelectTrigger className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none">
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder="카테고리 선택" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="Onboarding">Onboarding</SelectItem>
-                  <SelectItem value="Features">Features</SelectItem>
-                  <SelectItem value="Support">Support</SelectItem>
-                  <SelectItem value="Security">Security</SelectItem>
-                  <SelectItem value="Personalization">
-                    Personalization
-                  </SelectItem>
+                  <SelectItem value="Onboarding">온보딩</SelectItem>
+                  <SelectItem value="Features">특징</SelectItem>
+                  <SelectItem value="Support">지원</SelectItem>
+                  <SelectItem value="Security">보안</SelectItem>
+                  <SelectItem value="Personalization">개인화</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -122,13 +120,13 @@ export function CreateUserGuide() {
                 htmlFor="title"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Guide Title
+                가이드 제목
               </Label>
 
               <Input
                 id="title"
                 value={title}
-                placeholder="Guide Title"
+                placeholder="가이드 제목"
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border-[#d8d8d8] focus:border-[#128100] h-10 text-sm focus:ring-1 focus:ring-[#128100] shadow-none"
                 required
@@ -140,13 +138,13 @@ export function CreateUserGuide() {
                 htmlFor="description"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Guide Description
+                가이드 설명
               </Label>
 
               <Textarea
                 id="description"
                 value={description}
-                placeholder="Guide Description"
+                placeholder="가이드 설명"
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full border-[#d8d8d8] focus:border-[#128100] h-60 text-sm focus:ring-1 focus:ring-[#128100] shadow-none whitespace-pre-wrap"
                 required
@@ -159,7 +157,7 @@ export function CreateUserGuide() {
               className="h-10 text-sm shadow-none w-full bg-[#128100] hover:bg-[#128100]/90 text-white"
               disabled={isLoading}
             >
-              {isLoading ? "Creating Guide..." : "Create Guide"}
+              {isLoading ? "가이드 생성 중..." : "가이드 만들기"}
             </Button>
           </form>
         </CardContent>

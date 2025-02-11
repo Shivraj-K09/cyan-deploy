@@ -72,7 +72,7 @@ export function UserGuideById() {
   };
 
   if (loading) {
-    return <div className="p-4 text-center">Loading...</div>;
+    return <div className="p-4 text-center">로딩 중...</div>;
   }
 
   if (error) {
@@ -80,7 +80,7 @@ export function UserGuideById() {
   }
 
   if (!guide) {
-    return <div className="p-4 text-center">Guide not found.</div>;
+    return <div className="p-4 text-center">가이드를 찾을 수 없습니다.</div>;
   }
 
   return (
@@ -90,7 +90,7 @@ export function UserGuideById() {
         onClick={() => navigate(-1)}
         className="mb-4 text-[#2f2f2f] hover:text-[#000000]"
       >
-        <ChevronLeft className="mr-2 h-4 w-4" /> Back to User Guides
+        <ChevronLeft className="mr-2 h-4 w-4" /> 사용자 가이드로 돌아가기
       </Button>
       <Card className="max-w-3xl mx-auto shadow-none">
         <CardHeader>

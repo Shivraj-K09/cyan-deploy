@@ -41,7 +41,7 @@ export function BlockedUsersDrawer({
       <DrawerContent className="h-[80vh] flex flex-col">
         <DrawerHeader className="border-b pb-4">
           <DrawerTitle className="text-lg font-semibold">
-            Blocked Users
+            차단된 사용자
           </DrawerTitle>
           <VisuallyHidden>
             <DrawerDescription></DrawerDescription>
@@ -56,7 +56,7 @@ export function BlockedUsersDrawer({
               />
               <Input
                 type="search"
-                placeholder="Search blocked users..."
+                placeholder="차단된 사용자 검색 중..."
                 className="pl-10 pr-4 py-2 w-full h-10 text-sm shadow-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -66,7 +66,7 @@ export function BlockedUsersDrawer({
           <div className="flex-grow overflow-y-auto">
             {filteredUsers.length === 0 ? (
               <p className="text-center text-gray-500 p-4">
-                No blocked users found
+                차단된 사용자가 없습니다.
               </p>
             ) : (
               <Table>
@@ -89,7 +89,7 @@ export function BlockedUsersDrawer({
                           size="sm"
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
-                          Unblock
+                          차단 해제
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -101,7 +101,7 @@ export function BlockedUsersDrawer({
         </div>
         <DrawerFooter className="border-t pt-4">
           <Button onClick={onClose} className="w-full h-10 text-sm">
-            Close
+            닫기
           </Button>
         </DrawerFooter>
       </DrawerContent>

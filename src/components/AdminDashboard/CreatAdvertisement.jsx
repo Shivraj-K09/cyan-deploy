@@ -68,12 +68,12 @@ export function CreateAdvertisement() {
         onClick={() => navigate(-1)}
         className="mb-4 text-[#2f2f2f] hover:text-[#000000]"
       >
-        <ChevronLeft className="mr-2 h-4 w-4" /> Back to Advertisements
+        <ChevronLeft className="mr-2 h-4 w-4" /> 광고로 돌아가기
       </Button>
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto shadow-none">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-[#2f2f2f]">
-            Create New Advertisement
+            새 광고 만들기
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -83,13 +83,13 @@ export function CreateAdvertisement() {
                 htmlFor="title"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Advertisement Title
+                광고 제목
               </Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter advertisement title"
+                placeholder="광고 제목 입력"
                 className="w-full border-[#d8d8d8] text-sm focus:border-[#128100] focus:ring-1 focus:ring-[#128100] shadow-none"
                 required
               />
@@ -99,7 +99,7 @@ export function CreateAdvertisement() {
                 htmlFor="image"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Advertisement Image
+                광고 이미지
               </Label>
               <div
                 className="relative w-full pt-[56.25%] bg-[#f0f0f0] rounded-lg overflow-hidden cursor-pointer"
@@ -111,7 +111,7 @@ export function CreateAdvertisement() {
                   id="image"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointe shadow-none"
                 />
                 {image ? (
                   <img
@@ -144,15 +144,15 @@ export function CreateAdvertisement() {
                 htmlFor="link"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Advertisement Link
+                광고 링크
               </Label>
               <Input
                 id="link"
                 type="url"
                 value={link}
-                placeholder="Enter advertisement link"
+                placeholder="광고 링크를 입력하세요"
                 onChange={(e) => setLink(e.target.value)}
-                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm"
+                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm shadow-none"
                 required
               />
             </div>
@@ -161,14 +161,14 @@ export function CreateAdvertisement() {
                 htmlFor="startDate"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Start Date
+                시작 날짜
               </Label>
               <Input
                 id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm"
+                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm shadow-none"
                 required
               />
             </div>
@@ -177,22 +177,22 @@ export function CreateAdvertisement() {
                 htmlFor="endDate"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                End Date
+                종료 날짜
               </Label>
               <Input
                 id="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm"
+                className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm shadow-none"
                 required
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#128100] hover:bg-[#128100]/90 text-white h-10"
+              className="w-full bg-[#128100] hover:bg-[#128100]/90 text-white h-10 shadow-none"
             >
-              Create Advertisement
+              광고 만들기
             </Button>
           </form>
         </CardContent>

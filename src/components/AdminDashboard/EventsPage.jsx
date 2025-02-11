@@ -109,7 +109,7 @@ export function EventsPage() {
       <div className="flex items-center gap-2">
         <Input
           type="search"
-          placeholder="Search Events..."
+          placeholder="이벤트 검색..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none text-sm"
@@ -119,17 +119,17 @@ export function EventsPage() {
           onClick={handleCreateEvent}
         >
           <PlusIcon className="size-4" />
-          Create Event
+          이벤트 만들기
         </Button>
       </div>
 
       {isLoading && events.length === 0 ? (
         <div className="flex justify-center mt-5">
-          <p>Loading events...</p>
+          <p>이벤트 로딩 중...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
         <div className="flex justify-center mt-5">
-          <p>No events found</p>
+          <p>이벤트를 찾을 수 없습니다.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 pb-28 mt-5">
@@ -145,7 +145,7 @@ export function EventsPage() {
                     variant="destructive"
                     className="bg-[#ff0000] text-white text-xs absolute top-5 left-[-30px] transform -rotate-45 w-[140px] text-center flex items-center justify-center"
                   >
-                    Expired
+                    만료됨
                   </Badge>
                 </div>
               )}
@@ -191,7 +191,7 @@ export function EventsPage() {
 
       {isLoading && events.length > 0 && (
         <div className="flex justify-center mt-5">
-          <p>Loading more events...</p>
+          <p>더 많은 이벤트를 로드하는 중...</p>
         </div>
       )}
     </div>

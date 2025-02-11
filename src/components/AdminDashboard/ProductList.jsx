@@ -134,7 +134,7 @@ export default function ProductList() {
         >
           <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-semibold text-gray-800 flex-1 ml-2">
-            List of Products
+            제품 목록
           </h3>
         </button>
       </header>
@@ -143,7 +143,7 @@ export default function ProductList() {
         <div className="flex items-center mb-4 gap-4">
           <Input
             type="text"
-            placeholder="Search Products..."
+            placeholder="제품 검색..."
             className="flex-grow p-2 border border-gray-300 rounded-lg h-10 text-sm shadow-none"
             value={searchTerm}
             onChange={(e) => {
@@ -159,17 +159,17 @@ export default function ProductList() {
             <thead>
               <tr className="bg-gray-100 w-full">
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  Product Name
+                  제품 이름
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  Price
+                  가격
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  Inventory
+                  재고
                 </th>
 
                 <th className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  Actions
+                  행동
                 </th>
               </tr>
             </thead>
@@ -192,7 +192,7 @@ export default function ProductList() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      ${prod.price.toFixed(2)}
+                      ₩{prod.price.toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-sm">{prod.inventory}</td>
                     <td className="py-3 px-4 text-right text-sm">
@@ -231,7 +231,7 @@ export default function ProductList() {
                 disabled={currentPage === 1}
                 aria-label="Previous page"
               >
-                Previous
+                이전
               </button>
               {[...Array(totalPages)].map((_, i) => (
                 <button
@@ -259,7 +259,7 @@ export default function ProductList() {
                 disabled={currentPage === totalPages}
                 aria-label="Next page"
               >
-                Next
+                다음
               </button>
             </nav>
           </div>
@@ -275,13 +275,11 @@ export default function ProductList() {
         {isDeleteDialogOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg max-w-sm w-full">
-              <h2 className="text-xl font-bold mb-4">
-                Confirm Product Deletion
-              </h2>
+              <h2 className="text-xl font-bold mb-4">제품 삭제 확인</h2>
               <div className="mb-6">
                 <p className="text-sm">
-                  This action cannot be undone and will remove the product from
-                  your inventory.
+                  이 작업은 실행 취소할 수 없으며 제품이 귀하의 재고에서
+                  제거됩니다.
                 </p>
               </div>
               <div className="flex justify-end space-x-4">
@@ -290,7 +288,7 @@ export default function ProductList() {
                   className="bg-gray-200 px-4 py-2 text-gray-800 rounded-lg hover:bg-gray-300 text-sm"
                   aria-label="Cancel delete"
                 >
-                  Cancel
+                  취소
                 </button>
 
                 <button
@@ -298,7 +296,7 @@ export default function ProductList() {
                   onClick={handleConfirmDelete}
                   aria-label="Confirm delete"
                 >
-                  Delete
+                  삭제
                 </button>
               </div>
             </div>

@@ -57,7 +57,7 @@ export function MessageDrawer({ isOpen, onClose, initialName, recipientId }) {
       <DrawerContent>
         <DrawerHeader className="border-b pb-4">
           <DrawerTitle className="text-lg font-semibold">
-            Send a message to {initialName}
+            에게 메시지를 보내다 {initialName}
           </DrawerTitle>
           <VisuallyHidden>
             <DrawerDescription></DrawerDescription>
@@ -67,7 +67,7 @@ export function MessageDrawer({ isOpen, onClose, initialName, recipientId }) {
         <div className="p-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Name
+              이름
             </Label>
             <Input
               id="name"
@@ -81,7 +81,7 @@ export function MessageDrawer({ isOpen, onClose, initialName, recipientId }) {
               htmlFor="message"
               className="text-sm font-medium text-gray-700 shadow-none"
             >
-              Message
+              메시지
             </Label>
             <Textarea
               id="message"
@@ -95,10 +95,10 @@ export function MessageDrawer({ isOpen, onClose, initialName, recipientId }) {
         <DrawerFooter className="border-t pt-4">
           <div className="flex justify-between w-full">
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              취소
             </Button>
             <Button onClick={handleSendMessage} disabled={isSending}>
-              {isSending ? "Sending..." : "Send Message"}
+              {isSending ? "전송 중..." : "메시지 보내기"}
             </Button>
           </div>
         </DrawerFooter>

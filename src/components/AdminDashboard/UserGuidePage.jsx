@@ -111,7 +111,7 @@ export function UserGuidePage() {
       <div className="flex items-center gap-2 mb-6">
         <Input
           type="search"
-          placeholder="Search Guides..."
+          placeholder="가이드 검색..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none text-sm"
@@ -121,7 +121,7 @@ export function UserGuidePage() {
           onClick={handleCreateGuide}
         >
           <PlusIcon className="w-5 h-5" />
-          Create Guide
+          가이드 만들기
         </Button>
       </div>
 
@@ -159,7 +159,7 @@ export function UserGuidePage() {
               variant="outline"
               className="text-[#128100] border-[#128100]"
             >
-              Load More
+              더 불러오기
             </Button>
           </div>
         )}

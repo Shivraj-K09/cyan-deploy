@@ -88,17 +88,17 @@ export function NoticeDetails() {
     switch (status) {
       case "New":
         return (
-          <Badge className="bg-[#128100] text-white shadow-none">New</Badge>
+          <Badge className="bg-[#128100] text-white shadow-none">새로운</Badge>
         );
       case "In Progress":
         return (
           <Badge className="bg-orange-500/80 text-white shadow-none whitespace-nowrap">
-            In Progress
+            진행 중
           </Badge>
         );
       case "Done":
         return (
-          <Badge className="bg-[#6a6a6a] text-white shadow-none">Done</Badge>
+          <Badge className="bg-[#6a6a6a] text-white shadow-none">완료</Badge>
         );
       default:
         return null;
@@ -134,7 +134,7 @@ export function NoticeDetails() {
     }
 
     if (!notice) {
-      return <div className="p-4">Notice not found.</div>;
+      return <div className="p-4">공지사항을 찾을 수 없습니다.</div>;
     }
 
     return (
@@ -171,7 +171,7 @@ export function NoticeDetails() {
                 notice.status === "New" ? "bg-[#128100] text-white" : ""
               }
             >
-              New
+              새로운
             </Button>
             <Button
               onClick={() => handleStatusChange("In Progress")}
@@ -180,7 +180,7 @@ export function NoticeDetails() {
                 notice.status === "In Progress" ? "bg-[#FFA500] text-white" : ""
               }
             >
-              In Progress
+              진행 중
             </Button>
             <Button
               onClick={() => handleStatusChange("Done")}
@@ -189,7 +189,7 @@ export function NoticeDetails() {
                 notice.status === "Done" ? "bg-[#6a6a6a] text-white" : ""
               }
             >
-              Done
+              완료
             </Button>
           </div>
         </CardContent>
@@ -204,7 +204,7 @@ export function NoticeDetails() {
         onClick={() => navigate(-1)}
         className="mb-4 text-[#2f2f2f] hover:text-[#000000]"
       >
-        <ChevronLeftIcon className="mr-1 h-4 w-4" /> Go Back
+        <ChevronLeftIcon className="mr-1 h-4 w-4" /> 뒤로 가기
       </Button>
 
       {renderContent()}

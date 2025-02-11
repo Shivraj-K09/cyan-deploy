@@ -169,7 +169,7 @@ export function DashboardPage() {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/admin");
   };
 
   if (isLoading || !stats) {
@@ -178,56 +178,56 @@ export function DashboardPage() {
 
   const statsArray = [
     {
-      title: "New Members",
+      title: "새로운 회원",
       value: stats.newUsers.toString(),
       change: stats.growth.newUsers.toFixed(1),
       changeType: stats.growth.newUsers >= 0 ? "increase" : "decrease",
       icon: "Users",
     },
     {
-      title: "Free Members",
+      title: "무료 회원",
       value: stats.freeUsers.toString(),
       change: stats.growth.freeUsers.toFixed(1),
       changeType: stats.growth.freeUsers >= 0 ? "increase" : "decrease",
       icon: "UserCheck",
     },
     {
-      title: "Paid Members",
+      title: "유료 회원",
       value: stats.paidUsers.toString(),
       change: stats.growth.paidUsers.toFixed(1),
       changeType: stats.growth.paidUsers >= 0 ? "increase" : "decrease",
       icon: "CreditCard",
     },
     {
-      title: "Gold Members",
+      title: "골드 멤버스",
       value: stats.goldUsers.toString(),
       change: stats.growth.goldUsers.toFixed(1),
       changeType: stats.growth.goldUsers >= 0 ? "increase" : "decrease",
       icon: "Crown",
     },
     {
-      title: "Supporter Members",
+      title: "후원 회원",
       value: stats.supporterUsers.toString(),
       change: stats.growth.supporterUsers.toFixed(1),
       changeType: stats.growth.supporterUsers >= 0 ? "increase" : "decrease",
       icon: "HeartHandshake",
     },
     {
-      title: "Total Posts",
+      title: "총 게시물",
       value: stats.totalPosts.toString(),
       change: stats.growth.totalPosts.toFixed(1),
       changeType: stats.growth.totalPosts >= 0 ? "increase" : "decrease",
       icon: "MessageSquare",
     },
     {
-      title: "Points Used",
+      title: "사용한 포인트",
       value: stats.pointsUsed.toString(),
       change: stats.growth.pointsUsed.toFixed(1),
       changeType: stats.growth.pointsUsed >= 0 ? "increase" : "decrease",
       icon: "Coins",
     },
     {
-      title: "Points Paid",
+      title: "포인트 지급",
       value: stats.pointsPaid.toString(),
       change: stats.growth.pointsPaid.toFixed(1),
       changeType: stats.growth.pointsPaid >= 0 ? "increase" : "decrease",
@@ -241,7 +241,7 @@ export function DashboardPage() {
         <button onClick={handleBack} className="flex items-center">
           <ChevronLeft className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-semibold text-gray-800 flex-1 ml-2">
-            Dashboard
+            게시판
           </h3>
         </button>
       </header>

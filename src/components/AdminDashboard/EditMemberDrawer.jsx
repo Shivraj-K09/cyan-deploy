@@ -150,7 +150,7 @@ export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
       <DrawerContent>
         <DrawerHeader className="border-b pb-4">
           <DrawerTitle className="text-lg font-semibold">
-            Edit Member {editedMember.name}
+            회원 편집 {editedMember.name}
           </DrawerTitle>
           <VisuallyHidden>
             <DrawerDescription></DrawerDescription>
@@ -160,7 +160,7 @@ export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
         <div className="p-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Name
+              이름
             </Label>
             <Input
               id="name"
@@ -172,7 +172,7 @@ export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
 
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Email
+              이메일
             </Label>
             <Input
               id="name"
@@ -184,7 +184,7 @@ export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">
-              Membership Level
+              회원등급
             </Label>
             <Select
               value={editedMember.membership_level}
@@ -212,14 +212,14 @@ export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
         <DrawerFooter className="border-t pt-4">
           <div className="flex justify-between w-full">
             <Button className="text-sm" variant="outline" onClick={handleClose}>
-              Cancel
+              취소
             </Button>
             <Button
               className="text-sm"
               onClick={handleUpdate}
               disabled={isUpdating}
             >
-              {isUpdating ? "Updating..." : "Save Changes"}
+              {isUpdating ? "업데이트 중..." : "변경 사항 저장"}
             </Button>
           </div>
         </DrawerFooter>

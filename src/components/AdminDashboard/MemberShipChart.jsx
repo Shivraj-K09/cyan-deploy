@@ -19,19 +19,19 @@ import {
 } from "@/components/ui/card";
 
 const membershipColors = {
-  Free: "#4CAF50",
-  Paid: "#2196F3",
-  Gold: "#FFC107",
-  Supporter: "#E91E63",
+  무료: "#4CAF50",
+  지불됨: "#2196F3",
+  금: "#FFC107",
+  지지자: "#E91E63",
 };
 
 const MembershipChart = ({ membershipData }) => {
   // Transform the data into the format expected by the chart
   const formattedData = [
-    { type: "Free", members: membershipData?.Free || 0 },
-    { type: "Paid", members: membershipData?.Paid || 0 },
-    { type: "Gold", members: membershipData?.Gold || 0 },
-    { type: "Supporter", members: membershipData?.Supporter || 0 },
+    { type: "무료", members: membershipData?.Free || 0 },
+    { type: "지불됨", members: membershipData?.Paid || 0 },
+    { type: "금", members: membershipData?.Gold || 0 },
+    { type: "지지자", members: membershipData?.Supporter || 0 },
   ];
 
   const totalMembers = formattedData.reduce(
@@ -63,9 +63,9 @@ const MembershipChart = ({ membershipData }) => {
   return (
     <Card className="col-span-2 border border-gray-300 shadow-none">
       <CardHeader className="py-4">
-        <CardTitle className="text-lg">Membership Distribution</CardTitle>
+        <CardTitle className="text-lg">회원 분포</CardTitle>
         <CardDescription className="text-xs">
-          Current member count by type
+          유형별 현재 회원 수
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2">
@@ -89,10 +89,10 @@ const MembershipChart = ({ membershipData }) => {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-xs">
         <div className="flex gap-2 font-medium leading-none">
-          Total Members: {totalMembers.toLocaleString()}
+          총 회원 수: {totalMembers.toLocaleString()}
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing current distribution of member types
+          회원 유형의 현재 분포 표시
         </div>
       </CardFooter>
     </Card>

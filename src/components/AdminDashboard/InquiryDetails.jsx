@@ -36,7 +36,7 @@ export function InquiryDetails() {
           .single();
 
         if (error) throw error;
-        if (!data) throw new Error("Inquiry not found");
+        if (!data) throw new Error("문의가 없습니다.");
         setInquiry(data);
       } catch (error) {
         setError(error.message);
@@ -86,7 +86,7 @@ export function InquiryDetails() {
           >
             <ChevronLeftIcon className="h-6 w-6" />
             <span className="ml-2 text-base font-medium">
-              Customer Inquiry Details
+              고객 문의 세부 사항
             </span>
           </button>
         </div>
@@ -126,7 +126,7 @@ export function InquiryDetails() {
                 <span className="font-medium text-gray-900">
                   {inquiry.users?.name || "Unknown User"}
                 </span>
-                <span className="mx-2">·</span>
+                <span className="mx-2"></span>
                 <span>
                   {new Date(inquiry.created_at).toLocaleString("en-US", {
                     year: "numeric",
@@ -142,7 +142,7 @@ export function InquiryDetails() {
 
             {/* Content */}
             <div className="space-y-4">
-              <p className="text-gray-700 whitespace-pre-wrap">
+              <p className="text-gray-700 whitespace-pre-wrap text-sm">
                 {inquiry.content}
               </p>
               {inquiry.image_url && (
@@ -159,10 +159,10 @@ export function InquiryDetails() {
             {/* Admin Response */}
             {inquiry.admin_response && (
               <div className="mt-8 p-4 bg-green-50 rounded-lg">
-                <h3 className="font-medium text-green-800 mb-2">
-                  Admin Response
+                <h3 className="font-medium text-green-800 mb-2 text-sm">
+                  관리자 응답
                 </h3>
-                <p className="text-gray-700 whitespace-pre-wrap">
+                <p className="text-gray-700 whitespace-pre-wrap text-sm">
                   {inquiry.admin_response}
                 </p>
               </div>
@@ -184,14 +184,14 @@ export function InquiryDetails() {
                   disabled={submitting || !response.trim()}
                   className="w-full bg-[#128100] hover:bg-[#128100]/90 text-white h-12 rounded-lg flex items-center justify-center"
                 >
-                  <span>Submit Response</span>
+                  <span>응답 제출</span>
                   <SendIcon className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             )}
           </div>
         ) : (
-          <div className="p-4">Inquiry not found</div>
+          <div className="p-4">문의가 없습니다.</div>
         )}
       </main>
     </div>

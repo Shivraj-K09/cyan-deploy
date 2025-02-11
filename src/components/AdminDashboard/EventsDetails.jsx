@@ -63,7 +63,7 @@ export function EventsDetails() {
         onClick={() => navigate("/admin/events")}
       >
         <ChevronLeftIcon className="h-5 w-5 mr-1" />
-        Go Back
+        뒤로 가기
       </Button>
 
       <Card className="bg-[#ebebb] overflow-hidden relative shadow-none">
@@ -73,7 +73,7 @@ export function EventsDetails() {
               variant="destructive"
               className="bg-[#ff0000] text-white text-xs absolute top-5 left-[-40px] transform -rotate-45 w-[140px] text-center flex justify-center items-center"
             >
-              Expired
+              만료됨
             </Badge>
           </div>
         )}
@@ -116,7 +116,7 @@ export function EventsDetails() {
                 rel="noopener noreferrer"
                 className="text-[#128100] text-sm"
               >
-                Event Website Link
+                이벤트 웹사이트 링크
               </a>
             </div>
           )}

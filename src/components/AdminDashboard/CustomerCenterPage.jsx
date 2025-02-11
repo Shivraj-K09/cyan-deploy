@@ -115,18 +115,16 @@ export function CustomerCenterPage() {
     switch (status) {
       case "New":
         return (
-          <Badge className="bg-[#128100] text-white shadow-none">New</Badge>
+          <Badge className="bg-[#128100] text-white shadow-none">새로운</Badge>
         );
       case "In Progress":
         return (
-          <Badge className="bg-[#FFA500] text-black shadow-none">
-            In Progress
-          </Badge>
+          <Badge className="bg-[#FFA500] text-black shadow-none">진행 중</Badge>
         );
       case "Resolved":
         return (
           <Badge className="bg-[#6a6a6a] text-white border border-black/10 shadow-none">
-            Resolved
+            해결됨
           </Badge>
         );
       default:
@@ -143,7 +141,7 @@ export function CustomerCenterPage() {
       <div className="flex items-center gap-2 mb-6">
         <Input
           type="search"
-          placeholder="Search Inquiries..."
+          placeholder="검색 문의..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-10 flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm shadow-none"
@@ -189,7 +187,7 @@ export function CustomerCenterPage() {
             variant="outline"
             className="text-[#128100] border-[#128100]"
           >
-            Load More
+            더 불러오기
           </Button>
         </div>
       )}

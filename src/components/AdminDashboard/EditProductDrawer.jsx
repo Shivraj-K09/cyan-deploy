@@ -209,7 +209,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
         <div className="max-h-[70vh] overflow-hidden flex flex-col">
           <DrawerHeader className="flex-shrink-0 border-b border-[#d8d8d8] pb-4">
             <DrawerTitle className="text-lg font-semibold text-[#2f2f2f]">
-              Edit Product
+              제품 수정
             </DrawerTitle>
             <VisuallyHidden>
               <DrawerDescription></DrawerDescription>
@@ -244,7 +244,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                             onClick={() => handleDeleteImage(index)}
                           >
-                            Delete
+                            삭제
                           </Button>
                         </>
                       ) : (
@@ -272,7 +272,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="name"
                       className="text-base font-medium text-[#2f2f2f]"
                     >
-                      Product Name
+                      제품 이름
                     </Label>
                     <Input
                       id="name"
@@ -292,7 +292,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="description"
                       className="text-base font-medium text-[#2f2f2f]"
                     >
-                      Product Description
+                      제품 설명
                     </Label>
 
                     <Textarea
@@ -314,7 +314,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="category"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
-                      Category
+                      카테고리
                     </Label>
                     <Select
                       value={editedProduct.category}
@@ -326,7 +326,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       }
                     >
                       <SelectTrigger className="w-full border-[#d8d8d8] h-10 text-sm shadow-none">
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder="카테고리 선택" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -343,7 +343,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="brand"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
-                      Brand
+                      브랜드
                     </Label>
                     <Input
                       id="brand"
@@ -363,7 +363,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="manufacturer"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
-                      Manufacturer
+                      제조업체
                     </Label>
                     <Input
                       id="manufacturer"
@@ -383,7 +383,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="price"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
-                      Price
+                      가격
                     </Label>
                     <Input
                       id="price"
@@ -406,7 +406,7 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                       htmlFor="inventory"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
-                      Inventory
+                      재고
                     </Label>
                     <Input
                       id="inventory"
@@ -441,14 +441,14 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                     onClick={onClose}
                     className="bg-[#ebebeb] text-[#2f2f2f] hover:bg-[#d8d8d8] h-10 text-sm shadow-none"
                   >
-                    Cancel
+                    취소
                   </Button>
                   <Button
                     onClick={handleUpdate}
                     disabled={isSaving}
                     className="bg-[#128100] text-white hover:bg-[#128100]/90 h-10 text-sm shadow-none"
                   >
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? "저장 중..." : "변경 사항 저장"}
                   </Button>
                 </>
               )}

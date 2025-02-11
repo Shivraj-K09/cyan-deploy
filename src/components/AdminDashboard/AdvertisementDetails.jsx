@@ -78,7 +78,7 @@ export function AdvertisementDetails() {
   }
 
   if (!ad) {
-    return <div className="p-4 text-center">Loading...</div>;
+    return <div className="p-4 text-center">로딩 중...</div>;
   }
 
   return (
@@ -89,7 +89,7 @@ export function AdvertisementDetails() {
         className="mb-4 text-[#2f2f2f] hover:text-[#000]"
       >
         <ChevronLeftIcon className="h-5 w-5 mr-1" />
-        Go Back
+        뒤로 가기
       </Button>
 
       <Card className="bg-[#ebebeb] overflow-hidden relative shadow-none">
@@ -112,7 +112,7 @@ export function AdvertisementDetails() {
                 ad.is_active ? "bg-[#128100]" : "bg-[#ff0000]"
               } text-white transition-colors duration-200 ease-in-out`}
             >
-              {ad.is_active ? "Active" : "Removed"}
+              {ad.is_active ? "활성" : "제거됨"}
             </Badge>
           </div>
         </CardHeader>
@@ -149,7 +149,7 @@ export function AdvertisementDetails() {
             >
               <span className="flex items-center justify-center">
                 <XIcon className="h-4 w-4 mr-2" />
-                Remove Ad
+                광고 제거
               </span>
             </Button>
             <Button
@@ -163,7 +163,7 @@ export function AdvertisementDetails() {
             >
               <span className="flex items-center justify-center">
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Activate Ad
+                광고 활성화
               </span>
             </Button>
           </div>

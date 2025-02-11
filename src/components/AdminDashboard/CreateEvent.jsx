@@ -118,21 +118,21 @@ export function CreateEvent() {
         onClick={() => navigate(-1)}
       >
         <ChevronLeftIcon className="h-5 w-5 mr-1" />
-        Go Back
+        뒤로 가기
       </Button>
 
       <div className="pb-28">
         <Card className="max-w-2xl mx-auto shadow-none">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-[#2f2f2f]">
-              Create New Event
+              새 이벤트 만들기
             </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label className="block text-sm font-medium text-[#2f2f2f]">
-                Event Image
+                이벤트 이미지
               </Label>
 
               <div
@@ -173,7 +173,7 @@ export function CreateEvent() {
                 )}
               </div>
               <p className="text-xs text-[#6a6a6a] text-center mt-2">
-                Click or drag and drop to upload a banner image
+                배너 이미지를 업로드하려면 클릭하거나 드래그 앤 드롭하세요.
               </p>
             </div>
 
@@ -182,7 +182,7 @@ export function CreateEvent() {
                 htmlFor="event-title"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Event Title
+                이벤트 제목
               </Label>
               <Input
                 id="event-title"
@@ -199,7 +199,7 @@ export function CreateEvent() {
                 htmlFor="event-date"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Event Date
+                이벤트 날짜
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -214,7 +214,7 @@ export function CreateEvent() {
                     {eventDate ? (
                       format(eventDate, "PPP")
                     ) : (
-                      <span>Pick a date</span>
+                      <span>날짜를 정하세요</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -235,12 +235,12 @@ export function CreateEvent() {
                   htmlFor="start-time"
                   className="block text-sm font-medium text-[#2f2f2f]"
                 >
-                  Start Time
+                  시작 시간
                 </Label>
 
                 <Select onValueChange={(value) => setStartTime(value)}>
                   <SelectTrigger className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none text-sm">
-                    <SelectValue placeholder="Select a start time" />
+                    <SelectValue placeholder="시작 시간을 선택하세요." />
                   </SelectTrigger>
 
                   <SelectContent>
@@ -258,12 +258,12 @@ export function CreateEvent() {
                   htmlFor="end-time"
                   className="block text-sm font-medium text-[#2f2f2f]"
                 >
-                  End Time
+                  종말
                 </Label>
 
                 <Select onValueChange={(value) => setEndTime(value)}>
                   <SelectTrigger className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none text-sm">
-                    <SelectValue placeholder="Select an end time" />
+                    <SelectValue placeholder="종료 시간을 선택하세요." />
                   </SelectTrigger>
 
                   <SelectContent>
@@ -282,11 +282,11 @@ export function CreateEvent() {
                 htmlFor="event-description"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Event Description
+                이벤트 설명
               </Label>
               <Textarea
                 id="event-description"
-                placeholder="Event Description"
+                placeholder="이벤트 설명"
                 value={eventDescription}
                 onChange={(e) => setEventDescription(e.target.value)}
                 className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] shadow-none h-32 text-sm"
@@ -299,13 +299,13 @@ export function CreateEvent() {
                 htmlFor="event-link"
                 className="block text-sm font-medium text-[#2f2f2f]"
               >
-                Event Link
+                이벤트 링크
               </Label>
 
               <Input
                 id="event-link"
                 type="url"
-                placeholder="Event Link"
+                placeholder="이벤트 링크"
                 value={eventLink}
                 onChange={(e) => setEventLink(e.target.value)}
                 className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none text-sm"
@@ -317,7 +317,7 @@ export function CreateEvent() {
               className="w-full bg-[#128100] hover:bg-[#128100]/90 text-white h-10 text-sm"
               disabled={isLoading}
             >
-              {isLoading ? "Creating Event..." : "Create Event"}
+              {isLoading ? "이벤트 생성 중..." : "이벤트 만들기"}
             </Button>
           </CardContent>
         </Card>

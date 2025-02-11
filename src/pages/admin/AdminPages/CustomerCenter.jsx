@@ -6,7 +6,7 @@ export default function CustomerCenter() {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/admin");
   };
 
   return (
@@ -15,7 +15,7 @@ export default function CustomerCenter() {
         <button onClick={handleBack} className="flex items-center">
           <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-semibold text-gray-800 flex-1 ml-2">
-            Customer Center
+            고객 센터
           </h3>
         </button>
       </header>

@@ -54,7 +54,7 @@ export function MessageInbox({
   const navigate = useNavigate();
 
   const handleBackClick = () => {
-    navigate(-1);
+    navigate("/admin");
   };
 
   return (

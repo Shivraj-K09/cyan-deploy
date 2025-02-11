@@ -81,17 +81,15 @@ export function NoticePage() {
     switch (status) {
       case "New":
         return (
-          <Badge className="bg-[#128100] text-white shadow-none">New</Badge>
+          <Badge className="bg-[#128100] text-white shadow-none">새로운</Badge>
         );
       case "In Progress":
         return (
-          <Badge className="bg-[#FFA500] text-white shadow-none">
-            In Progress
-          </Badge>
+          <Badge className="bg-[#FFA500] text-white shadow-none">진행 중</Badge>
         );
       case "Done":
         return (
-          <Badge className="bg-[#6a6a6a] text-white shadow-none">Done</Badge>
+          <Badge className="bg-[#6a6a6a] text-white shadow-none">완료</Badge>
         );
       default:
         return null;
@@ -103,7 +101,7 @@ export function NoticePage() {
       <div className="flex items-center gap-2 mb-6">
         <Input
           type="search"
-          placeholder="Search Notice..."
+          placeholder="검색 공지..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] shadow-none text-sm h-10"
@@ -112,17 +110,17 @@ export function NoticePage() {
           onClick={handleCreateNotice}
           className="bg-[#128100] hover:bg-[#128100]/90 text-white px-3 py-1 h-10 text-sm"
         >
-          <PlusIcon className="w-4 h-4 mr-2" /> Create Notice
+          <PlusIcon className="w-4 h-4 mr-2" /> 공지 만들기
         </Button>
       </div>
 
       {isLoading && notices.length === 0 ? (
         <div className="flex justify-center items-center h-64">
-          <p>Loading notices...</p>
+          <p>공지사항을 로드하는 중...</p>
         </div>
       ) : filteredNotices.length === 0 ? (
         <div className="flex justify-center items-center h-64">
-          <p>No notices found</p>
+          <p>공지사항이 없습니다.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
@@ -157,7 +155,7 @@ export function NoticePage() {
 
       {isLoading && notices.length > 0 && (
         <div className="flex justify-center mt-4">
-          <p>Loading more notices...</p>
+          <p>더 많은 공지를 불러오는 중...</p>
         </div>
       )}
     </div>

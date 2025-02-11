@@ -84,13 +84,13 @@ export function CreateNotice() {
         onClick={() => navigate(-1)}
         className="mb-4 text-[#2f2f2f] hover:text-[#000000]"
       >
-        <ChevronLeftIcon className="mr-1 h-4 w-4" /> Go Back
+        <ChevronLeftIcon className="mr-1 h-4 w-4" /> 뒤로 가기
       </Button>
 
       <Card className="max-w-2xl mx-auto shadow-none">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-[#2f2f2f]">
-            Create Notice
+            공지 만들기
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,12 +99,12 @@ export function CreateNotice() {
               htmlFor="notice-title"
               className="block text-sm font-medium text-[#2f2f2f]"
             >
-              Notice Title
+              공지 제목
             </Label>
             <Input
               id="notice-title"
               value={noticeTitle}
-              placeholder="Enter Notice Title"
+              placeholder="공지 제목 입력"
               onChange={(e) => setNoticeTitle(e.target.value)}
               className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] shadow-none text-sm h-10"
             />
@@ -115,13 +115,13 @@ export function CreateNotice() {
               htmlFor="notice-description"
               className="block text-sm font-medium text-[#2f2f2f]"
             >
-              Notice Description
+              공지 설명
             </Label>
             <Textarea
               id="notice-description"
               rows={4}
               value={noticeDescription}
-              placeholder="Enter Notice Description"
+              placeholder="공지 설명 입력"
               onChange={(e) => setNoticeDescription(e.target.value)}
               className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] shadow-none text-sm min-h-[60px] whitespace-pre-wrap"
             />
@@ -132,7 +132,7 @@ export function CreateNotice() {
               htmlFor="notice-date"
               className="block text-sm font-medium text-[#2f2f2f]"
             >
-              Notice Date
+              공지 날짜
             </Label>
 
             <Popover>
@@ -148,7 +148,7 @@ export function CreateNotice() {
                   {noticeDate ? (
                     format(noticeDate, "PPP")
                   ) : (
-                    <span>Pick a date</span>
+                    <span>날짜를 정하세요</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -169,18 +169,18 @@ export function CreateNotice() {
               htmlFor="notice-category"
               className="block text-sm font-medium text-[#2f2f2f]"
             >
-              Notice Category
+              공지 카테고리
             </Label>
             <Select value={noticeCategory} onValueChange={setNoticeCategory}>
               <SelectTrigger className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="카테고리 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Maintainance">Maintainance</SelectItem>
-                <SelectItem value="Update">Update</SelectItem>
-                <SelectItem value="Announcement">Announcement</SelectItem>
-                <SelectItem value="Security">Security</SelectItem>
-                <SelectItem value="Legal">Legal</SelectItem>
+                <SelectItem value="Maintainance">유지보수</SelectItem>
+                <SelectItem value="Update">업데이트</SelectItem>
+                <SelectItem value="Announcement">공지</SelectItem>
+                <SelectItem value="Security">보안</SelectItem>
+                <SelectItem value="Legal">법률</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -190,16 +190,16 @@ export function CreateNotice() {
               htmlFor="notice-status"
               className="block text-sm font-medium text-[#2f2f2f]"
             >
-              Notice Status
+              공지 상태
             </Label>
             <Select value={noticeStatus} onValueChange={setNoticeStatus}>
               <SelectTrigger className="w-full border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] h-10 shadow-none">
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Done">Done</SelectItem>
+                <SelectItem value="New">새로운</SelectItem>
+                <SelectItem value="In Progress">진행 중</SelectItem>
+                <SelectItem value="Done">완료</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -209,7 +209,7 @@ export function CreateNotice() {
             className="w-full bg-[#128100] hover:bg-[#128100]/90 text-white h-10 shadow-none"
             disabled={isLoading}
           >
-            {isLoading ? "Creating Notice..." : "Create Notice"}
+            {isLoading ? "공지 작성 중..." : "공지 만들기"}
           </Button>
         </CardContent>
       </Card>
