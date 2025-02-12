@@ -160,7 +160,7 @@ export function InquiryDetails() {
             {inquiry.admin_response && (
               <div className="mt-8 p-4 bg-green-50 rounded-lg">
                 <h3 className="font-medium text-green-800 mb-2 text-sm">
-                  관리자 응답
+                  관리자 답변
                 </h3>
                 <p className="text-gray-700 whitespace-pre-wrap text-sm">
                   {inquiry.admin_response}

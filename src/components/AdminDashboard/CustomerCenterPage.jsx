@@ -19,7 +19,7 @@ export function CustomerCenterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const { ref, inView } = useInView();
-  const [activeTab, setActiveTab] = useState("unanswered");
+  const [activeTab, setActiveTab] = useState("answered");
 
   const fetchInquiries = useCallback(async () => {
     setIsLoading(true);
