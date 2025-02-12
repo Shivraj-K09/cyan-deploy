@@ -817,7 +817,7 @@ const FishingApp = () => {
                               <DrawerHeader className="border-b">
                                 <DrawerTitle className="flex items-center gap-2 px-4">
                                   <span className="text-base font-medium">
-                                    Comments
+                                    댓글
                                   </span>
                                   <span className="text-base text-gray-500">
                                     {post.comments_count || 0}
@@ -895,13 +895,13 @@ const FishingApp = () => {
                                     placeholder={
                                       post.id.startsWith("dummy")
                                         ? "This is a demo comment input - posting is disabled"
-                                        : "Add a comment..."
+                                        : "댓글 추가..."
                                     }
                                     value={newComment}
                                     onChange={(e) =>
                                       setNewComment(e.target.value)
                                     }
-                                    className="flex-1 h-11 text-sm"
+                                    className="flex-1 h-11 text-sm shadow-none"
                                     disabled={post.id.startsWith("dummy")}
                                   />
                                   <Button
@@ -909,7 +909,7 @@ const FishingApp = () => {
                                     className="bg-green-500 text-white hover:bg-green-600 h-11 w-20"
                                     disabled={post.id.startsWith("dummy")}
                                   >
-                                    Post
+                                    게시물
                                   </Button>
                                 </div>
                               </div>
