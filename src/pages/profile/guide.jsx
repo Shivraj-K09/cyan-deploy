@@ -78,6 +78,15 @@ const Guide = () => {
       : false
   );
 
+  // Function to format date as yyyy.mm.dd
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+  };
+
   if (error) {
     return (
       <div className="p-4 bg-white h-screen">
@@ -131,12 +140,10 @@ const Guide = () => {
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="space-y-2">
                   <div className="flex items-center text-[#6a6a6a] text-xs mb-1">
                     <CalendarIcon className="w-4 h-4 mr-1" />
-                    <span>
-                      {new Date(guide.created_at).toLocaleDateString()}
-                    </span>
+                    <span>{formatDate(guide.created_at)}</span>
                   </div>
 
                   <div className="flex items-center text-[#6a6a6a] text-xs">

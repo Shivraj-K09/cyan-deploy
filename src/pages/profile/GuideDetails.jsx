@@ -55,6 +55,15 @@ export function GuideDetails() {
     );
   };
 
+  // Function to format date as yyyy.mm.dd
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+  };
+
   if (loading) {
     return <div className="p-4 text-center">Loading...</div>;
   }
@@ -68,7 +77,7 @@ export function GuideDetails() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full overflow-hidden">
       <header className="sticky top-0 z-10 bg-white border-b border-gray-300 px-4 h-14 flex items-center">
         <button
           onClick={() => navigate("/guide")}
@@ -81,7 +90,7 @@ export function GuideDetails() {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden">
         <div className="p-4 bg-[#ffffff] min-h-screen">
           <Card className="max-w-3xl mx-auto shadow-none">
             <CardHeader>
@@ -92,7 +101,7 @@ export function GuideDetails() {
                 <div className="flex items-center text-[#6a6a6a] text-sm">
                   <CalendarIcon className="mr-1 h-4 w-4" />
                   <span className="mr-4 text-xs">
-                    {new Date(guide.created_at).toLocaleDateString()}
+                    {formatDate(guide.created_at)}
                   </span>
                 </div>
 

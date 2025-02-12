@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import ko from "date-fns/locale/ko";
 import { toast, Toaster } from "sonner";
 import { supabase } from "../../lib/supabaseClient";
 // import { useAuth } from "../../lib/auth";
@@ -173,7 +174,7 @@ const FishingApp = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      let { data: fetchedPosts, error } = await supabase
+      const { data: fetchedPosts, error } = await supabase
         .from("posts")
         .select(
           `
@@ -590,7 +591,10 @@ const FishingApp = () => {
   };
 
   const calculateTimeAgo = (timestamp) => {
-    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    return formatDistanceToNow(new Date(timestamp), {
+      addSuffix: true,
+      locale: ko,
+    });
   };
 
   const fishTabs = [
@@ -742,7 +746,7 @@ const FishingApp = () => {
                       (post.image_urls.length === 1 ? (
                         <div className="w-full h-64 aspect-square object-cover">
                           <img
-                            src={post.image_urls[0]}
+                            src={post.image_urls[0] || "/placeholder.svg"}
                             alt={`Post image`}
                             className="w-full h-full  object-cover"
                           />
@@ -753,7 +757,7 @@ const FishingApp = () => {
                             {post.image_urls.map((imageUrl, index) => (
                               <CarouselItem key={index} className="h-64">
                                 <img
-                                  src={imageUrl}
+                                  src={imageUrl || "/placeholder.svg"}
                                   alt={`Post image ${index + 1}`}
                                   className="w-full h-full object-cover"
                                 />
@@ -861,7 +865,10 @@ const FishingApp = () => {
                                           <span className="text-xs text-gray-500">
                                             {formatDistanceToNow(
                                               new Date(comment.created_at),
-                                              { addSuffix: true }
+                                              {
+                                                addSuffix: true,
+                                                locale: ko,
+                                              }
                                             )}
                                           </span>
                                         </div>
