@@ -2,9 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, MessageCircleIcon, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -19,6 +19,7 @@ export function CustomerCenterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const { ref, inView } = useInView();
+  const [activeTab, setActiveTab] = useState("unanswered");
 
   const fetchInquiries = useCallback(async () => {
     setIsLoading(true);
@@ -72,19 +73,27 @@ export function CustomerCenterPage() {
     fetchInquiries();
   }, [fetchInquiries]);
 
-  const getFilteredInquiries = useCallback((displayedInquiries, searchTerm) => {
-    return displayedInquiries.filter(
-      (inquiry) =>
-        inquiry.users.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inquiry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inquiry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inquiry.status.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, []);
+  const getFilteredInquiries = useCallback(
+    (displayedInquiries, searchTerm, activeTab) => {
+      return displayedInquiries.filter(
+        (inquiry) =>
+          (inquiry.users.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+            inquiry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            inquiry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            inquiry.status.toLowerCase().includes(searchTerm.toLowerCase())) &&
+          ((activeTab === "unanswered" &&
+            (inquiry.status === "New" || inquiry.status === "In Progress")) ||
+            (activeTab === "answered" && inquiry.status === "Resolved"))
+      );
+    },
+    []
+  );
 
   const filteredInquiries = useMemo(
-    () => getFilteredInquiries(displayedInquiries, searchTerm),
-    [displayedInquiries, searchTerm, getFilteredInquiries]
+    () => getFilteredInquiries(displayedInquiries, searchTerm, activeTab),
+    [displayedInquiries, searchTerm, activeTab, getFilteredInquiries]
   );
 
   const loadMoreInquiries = useCallback(() => {
@@ -146,6 +155,23 @@ export function CustomerCenterPage() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-10 flex-grow bg-white border-[#d8d8d8] focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm shadow-none"
         />
+      </div>
+      <div className="flex space-x-2 mb-4">
+        <Button
+          variant={activeTab === "answered" ? "default" : "outline"}
+          onClick={() => setActiveTab("answered")}
+          className="text-sm"
+        >
+          답변완료
+        </Button>
+
+        <Button
+          variant={activeTab === "unanswered" ? "default" : "outline"}
+          onClick={() => setActiveTab("unanswered")}
+          className="text-sm"
+        >
+          미답변
+        </Button>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 grid-cols-1 pb-28">
         {filteredInquiries.map((inquiry) => (
