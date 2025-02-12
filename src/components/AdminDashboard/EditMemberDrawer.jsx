@@ -21,7 +21,7 @@ import {
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 
-const membershipLevels = ["Free", "Paid", "Gold", "Supporter"];
+const membershipLevels = ["무료 회원", "유료 회원", "골드 멤버", "서포터즈"];
 
 export function EditMemberDrawer({ isOpen, onClose, member, onUpdate }) {
   const [editedMember, setEditedMember] = useState(null);
