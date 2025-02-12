@@ -403,6 +403,29 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
 
                   <div className="space-y-2">
                     <Label
+                      htmlFor="original_price"
+                      className="text-sm font-medium text-[#2f2f2f]"
+                    >
+                      원래 가격
+                    </Label>
+                    <Input
+                      id="original_price"
+                      type="number"
+                      value={editedProduct.original_price}
+                      onChange={(e) =>
+                        setEditedProduct((prev) => ({
+                          ...prev,
+                          original_price: Number.parseFloat(e.target.value),
+                        }))
+                      }
+                      className="w-full border-[#d8d8d8] h-10 shadow-none text-sm"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
                       htmlFor="inventory"
                       className="text-sm font-medium text-[#2f2f2f]"
                     >
@@ -419,6 +442,29 @@ export function EditProductDrawer({ isOpen, onClose, product, onUpdate }) {
                         }))
                       }
                       className="w-full border-[#d8d8d8] h-10 shadow-none text-sm"
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="delivery_fee"
+                      className="text-sm font-medium text-[#2f2f2f]"
+                    >
+                      배달료
+                    </Label>
+                    <Input
+                      id="delivery_fee"
+                      type="number"
+                      value={editedProduct.delivery_fee}
+                      onChange={(e) =>
+                        setEditedProduct((prev) => ({
+                          ...prev,
+                          delivery_fee: Number.parseFloat(e.target.value),
+                        }))
+                      }
+                      className="w-full border-[#d8d8d8] h-10 shadow-none text-sm"
+                      step="0.01"
                       min="0"
                     />
                   </div>

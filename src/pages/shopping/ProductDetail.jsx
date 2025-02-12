@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/carousel";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ShoppingCartIcon } from "lucide-react";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -34,6 +36,8 @@ const ProductDetail = () => {
         setProduct(data);
       }
     };
+
+    console.log("Fetching Product Detail");
 
     fetchProduct();
   }, [id]);
@@ -153,7 +157,13 @@ const ProductDetail = () => {
 
       {/* Product Description */}
       <div className="bg-white rounded-lg p-6">
-        <p className="text-3xl font-bold mb-4">{product.price}원</p>
+        <h2 className="text-2xl font-semibold mb-2">{product.name}</h2>
+        <div className="flex items-center gap-2">
+          <p className="text-3xl font-bold mb-4">{product.price}원</p>
+          <p className="text-xl line-through text-gray-600">
+            {product.original_price}원
+          </p>
+        </div>
 
         <div className="space-y-2">
           <div className="flex text-sm">
@@ -175,15 +185,28 @@ const ProductDetail = () => {
 
           <div className="flex text-sm">
             <div className="w-[80px] flex-shrink-0 text-gray-600">[배송비]</div>
-            <div className="flex-1">3,000원</div>
+            <div className="flex-1">{product.delivery_fee}원</div>
           </div>
+        </div>
+
+        <div className="flex mt-7 gap-4 items-center justify-center">
+          <Button
+            variant="outline"
+            className="h-10 rounded-none border-[#128100] px-8"
+          >
+            <ShoppingCartIcon className="h-5 w-5 stroke-[#128100]" />
+            장바구니
+          </Button>
+          <Button className="h-10 bg-[#128100] rounded-none px-10">
+            구매하기
+          </Button>
         </div>
       </div>
 
       <div className="bg-gray-300 w-full h-1 my-4" />
 
       {/* Feedback Sections */}
-      <p className="ml-4 text-xl font-bold">상품 리뷰</p>
+      <p className="ml-4 text-xl font-bold">상세페이지</p>
       <div className="p-4 space-y-4 pb-20">
         {feedbackSections.map((section) => (
           <div key={section.id}>

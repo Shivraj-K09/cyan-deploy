@@ -21,10 +21,12 @@ export function AddProduct() {
     name: "",
     description: "",
     price: 0,
+    original_price: 0,
     inventory: 0,
     brand: "",
     category: "",
     manufacturer: "",
+    delivery_fee: 0,
   });
 
   const [images, setImages] = useState(Array(4).fill(null));
@@ -305,6 +307,25 @@ export function AddProduct() {
 
           <div className="space-y-2">
             <Label
+              htmlFor="original_price"
+              className="block text-sm font-medium text-gray-700"
+            >
+              원래 가격
+            </Label>
+            <Input
+              id="original_price"
+              name="original_price"
+              placeholder="원래 가격"
+              type="number"
+              value={product.original_price}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-lg border-gray-300 shadow-none focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm h-10"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label
               htmlFor="inventory"
               className="block text-sm font-medium text-gray-700"
             >
@@ -315,6 +336,25 @@ export function AddProduct() {
               name="inventory"
               type="number"
               value={product.inventory}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-lg border-gray-300 shadow-none focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm h-10"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="delivery_fee"
+              className="block text-sm font-medium text-gray-700"
+            >
+              배달료
+            </Label>
+            <Input
+              id="delivery_fee"
+              name="delivery_fee"
+              placeholder="배달료"
+              type="number"
+              value={product.delivery_fee}
               onChange={handleInputChange}
               className="mt-1 block w-full rounded-lg border-gray-300 shadow-none focus:border-[#128100] focus:ring-1 focus:ring-[#128100] text-sm h-10"
               required
