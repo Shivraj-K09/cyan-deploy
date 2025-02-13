@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FiShare2 } from "react-icons/fi";
 import { Link, useParams } from "react-router-dom";
-import { FaChevronRight } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
 import {
   Carousel,
@@ -14,6 +13,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ShoppingCartIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductDetailsTab } from "./ProductDetailsTab";
+import { ProductReviewsTab } from "./ProductReviewsTab";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -21,6 +23,8 @@ const ProductDetail = () => {
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
   const [api, setApi] = React.useState(null);
+  const [isSticky, setIsSticky] = useState(false);
+  const buttonsRef = useRef(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -54,6 +58,18 @@ const ProductDetail = () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (buttonsRef.current) {
+        const { top } = buttonsRef.current.getBoundingClientRect();
+        setIsSticky(top <= 0);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const feedbackSections = [
     {
@@ -96,7 +112,7 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-28">
       {/* Navigation Bar */}
       <div className="flex justify-between items-center p-4 border-b">
         <Link to="/shopping" className="text-gray-600">
@@ -189,62 +205,55 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="flex mt-7 gap-4 items-center justify-center">
-          <Button
-            variant="outline"
-            className="h-10 rounded-none border-[#128100] px-8"
+        <div ref={buttonsRef} className="mt-7">
+          <div
+            className={`flex gap-4 items-center justify-center ${
+              isSticky
+                ? "fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-10"
+                : ""
+            }`}
           >
-            <ShoppingCartIcon className="h-5 w-5 stroke-[#128100]" />
-            장바구니
-          </Button>
-          <Button className="h-10 bg-[#128100] rounded-none px-10">
-            구매하기
-          </Button>
+            <Button
+              variant="outline"
+              className="h-10 rounded-none border-[#128100] px-8"
+            >
+              <ShoppingCartIcon className="h-5 w-5 stroke-[#128100]" />
+              장바구니
+            </Button>
+            <Button className="h-10 bg-[#128100] rounded-none px-10">
+              구매하기
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="bg-gray-300 w-full h-1 my-4" />
 
-      {/* Feedback Sections */}
-      <p className="ml-4 text-xl font-bold">상세페이지</p>
-      <div className="p-4 space-y-4 pb-20">
-        {feedbackSections.map((section) => (
-          <div key={section.id}>
-            <Link to="/product-review">
-              <div className="w-full h-[0.6px] bg-gray-300 my-1" />
-              <div className="rounded-lg">
-                <div className="flex justify-between items-center">
-                  <div className="py-2">
-                    <p className="text-[10px]">{section.miniTitle}</p>
-                    <p className="font-semibold text-xl text-left">
-                      {section.title}
-                    </p>
-                    <p className="text-l text-left">{section.subtitle}</p>
-                  </div>
-                  <FaChevronRight className="w-5 h-5" />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-32 h-20 bg-gray-200" />
-                  <div className="text-wrap text-[10.5px] text-[#424242]">
-                    <p>{section.content1}</p>
-                    <p>{section.content2}</p>
-                    <p className="mt-2">{section.content3}</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
-        <div className="py-8 w-full flex items-center justify-center">
-          <Link
-            to="/payment"
-            className="bg-[#128100] text-white p-3 px-6 text-lg font-bold rounded-xl"
-          >
-            결제하기
-          </Link>
+      <Tabs defaultValue="tab-1" className="w-full">
+        <div className="w-full">
+          <TabsList className="h-auto w-full rounded-none border-b border-border bg-transparent p-0">
+            <TabsTrigger
+              value="tab-1"
+              className="relative flex-1 rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+            >
+              Details
+            </TabsTrigger>
+            <TabsTrigger
+              value="tab-2"
+              className="relative flex-1 rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+            >
+              Reviews
+              <span className="ml-2">0</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
+        <TabsContent value="tab-1">
+          <ProductDetailsTab />
+        </TabsContent>
+        <TabsContent value="tab-2">
+          <ProductReviewsTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

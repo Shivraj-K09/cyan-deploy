@@ -102,7 +102,6 @@ function App() {
   const hideBottomNavPaths = [
     "/login",
     "/signup",
-    "/find-credentials",
     "/find-credentials/result",
     "/find-password",
     "/find-password/reset",
@@ -130,6 +129,7 @@ function App() {
     "/fish-catch-record/create-post",
     "/fish-catch-record/filter-post",
     "/block-page-404",
+    "/find-credentials",
   ];
 
   const showTopNavPaths = [
@@ -137,6 +137,7 @@ function App() {
     "/my-map",
     "/fish-catch-record",
     "/shopping",
+
     "/admin",
   ];
 

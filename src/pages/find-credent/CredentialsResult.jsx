@@ -75,7 +75,7 @@ const CredentialsResult = () => {
       </div>
 
       {/* Bottom Buttons */}
-      <div className="fixed bottom-8 left-5 right-5 space-y-4">
+      <div className="fixed bottom-20 left-5 right-5 space-y-4">
         <Button
           onClick={() => navigate("/login")}
           className="h-14 text-white w-full rounded-full bg-[#008000] text-base font-medium hover:bg-[#006700]"

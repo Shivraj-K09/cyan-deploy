@@ -185,7 +185,7 @@ const FindCredentials = () => {
             </div>
           </div>
 
-          <div className="fixed bottom-8 left-5 right-5 space-y-4">
+          <div className="fixed bottom-20 left-5 right-5 space-y-4">
             <Button
               type="submit"
               className="h-14 w-full text-white rounded-full bg-[#008000] text-base font-medium hover:bg-[#006700]"
