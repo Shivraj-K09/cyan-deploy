@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiChevronDown } from "react-icons/fi";
 import { supabase } from "@/lib/supabaseClient";
+import { Footer } from "../footer";
 
 const ShoppingEcommerce = () => {
   const [activeTab, setActiveTab] = useState("낚시용품");
@@ -160,6 +161,10 @@ const ShoppingEcommerce = () => {
             No products found in this category.
           </div>
         )}
+      </div>
+
+      <div className="mt-auto fixed bottom-[70px] w-full">
+        <Footer />
       </div>
     </div>
   );

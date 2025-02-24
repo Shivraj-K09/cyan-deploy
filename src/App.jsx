@@ -70,6 +70,7 @@ import { UserEventDetails } from "./pages/profile/UserEventDetails";
 import UserNotices from "./pages/profile/notices";
 import { UserNoticeDetails } from "./pages/profile/UserNoticeDetails";
 import { GuideDetails } from "./pages/profile/GuideDetails";
+import { Footer } from "./pages/footer";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading, initialCheckDone } = useSelector(
@@ -137,7 +138,6 @@ function App() {
     "/my-map",
     "/fish-catch-record",
     "/shopping",
-
     "/admin",
   ];
 
@@ -552,13 +552,16 @@ function App() {
       </Routes>
 
       {showBottomNav && (
-        <div
-          ref={bottomNavRef}
-          className="fixed bottom-0 left-0 right-0 border-t bg-white z-50"
-        >
-          <BottomNav loc={location.pathname} />
-        </div>
+        <>
+          <div
+            ref={bottomNavRef}
+            className="fixed bottom-0 left-0 right-0 border-t bg-white z-50"
+          >
+            <BottomNav loc={location.pathname} />
+          </div>
+        </>
       )}
+
       <Toaster richColors />
     </BlockedUserCheck>
   );

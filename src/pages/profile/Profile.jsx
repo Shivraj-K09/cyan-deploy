@@ -13,6 +13,7 @@ import {
   SupporterMemberIcon,
 } from "../../components/icons/Icons";
 import { supabase } from "../../lib/supabaseClient";
+import { Footer } from "../footer";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -149,7 +150,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pt-4">
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <h1 className="text-xl font-medium text-center py-6">내 정보</h1>
 
@@ -218,7 +219,7 @@ const Profile = () => {
       <hr className="my-4 border-t border-gray-200" />
 
       {/* Menu List */}
-      <div className="flex-1 overflow-y-auto space-y-1 pb-24">
+      <div className="flex-1 overflow-y-auto space-y-1 pb-48">
         <Link to="/inbox" className="block px-4 py-3">
           <span className="text-sm">내편지함</span>
         </Link>
@@ -273,6 +274,10 @@ const Profile = () => {
             <span className="text-sm">고객센터</span>
           </Link>
         </div>
+      </div>
+
+      <div className="mt-auto fixed bottom-[70px] w-full">
+        <Footer />
       </div>
     </div>
   );
